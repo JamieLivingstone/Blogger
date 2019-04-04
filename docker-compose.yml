@@ -1,0 +1,25 @@
+version: '3.4'
+
+services:
+  sql:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: blogger
+
+  bloggerapi:
+    image: bloggerapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/app"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - sql
+    ports:
+      - 5000:5000
