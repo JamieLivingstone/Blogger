@@ -9,6 +9,7 @@ namespace Blogger.WebApi.Mapping
         public MappingProfile()
         {
             CreateMap<SaveUserResource, ApplicationUser>(MemberList.None);
+            CreateMap<ApplicationUser, UserResource>(MemberList.None);
         }
     }
 }

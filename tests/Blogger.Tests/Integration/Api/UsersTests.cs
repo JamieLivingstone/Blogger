@@ -8,6 +8,7 @@ using Blogger.Infrastructure;
 using Blogger.WebApi.Resources.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using NUnit.Framework;
 
 namespace Blogger.Tests.Integration.Api
@@ -110,9 +111,13 @@ namespace Blogger.Tests.Integration.Api
             
             // Act
             var result = await _client.PostAsJsonAsync("/api/users/login", login);
+            var resultString = await result.Content.ReadAsStringAsync();
+            var user = JsonConvert.DeserializeObject<UserResource>(resultString);
             
             // Assert
             Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(user.UserName, Is.EqualTo(login.UserName));
+            Assert.That(user.Token.Length, Is.GreaterThan(100));
         }
 
         [TestCase]

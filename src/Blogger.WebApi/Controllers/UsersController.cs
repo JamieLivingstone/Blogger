@@ -79,7 +79,11 @@ namespace Blogger.WebApi.Controllers
 
         private UserResource FormattedUserResponse(ApplicationUser applicationUser)
         {
-            return _mapper.Map<UserResource>(applicationUser);
+            var user = _mapper.Map<UserResource>(applicationUser);
+            
+            user.Token = _jwtTokenGenerator.CreateToken(applicationUser);
+
+            return user;
         }
     }
 }
