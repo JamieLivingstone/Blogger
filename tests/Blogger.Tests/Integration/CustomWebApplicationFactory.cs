@@ -24,22 +24,9 @@ namespace Blogger.Tests.Integration
                     options.UseInMemoryDatabase("InMemoryDbForTesting");
                     options.UseInternalServiceProvider(serviceProvider);
                 });
-
-                // Build the service provider.
-                var sp = services.BuildServiceProvider();
-
-                // Create a scope to obtain a reference to the database context
-                using (var scope = sp.CreateScope())
-                {
-                    var scopedServices = scope.ServiceProvider;
-                    var db = scopedServices.GetRequiredService<ApplicationDbContext>();
-                    
-                    // Ensure the database is created
-                    db.Database.EnsureCreated();
                 
-                    // Seed the database with test data
-                    SeedData.PopulateTestData(db);
-                }
+                // Build the service provider.
+                services.BuildServiceProvider();
             });
         }  
     }

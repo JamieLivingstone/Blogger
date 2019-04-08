@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Integration\Api" />
+      <Folder Include="Integration\Utilities" />
     </ItemGroup>
 
 </Project>
