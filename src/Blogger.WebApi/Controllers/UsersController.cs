@@ -70,7 +70,7 @@ namespace Blogger.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetSignedInUser()
         {
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             
             var user = await _userManager.Users.FirstAsync(u => u.Id == userId);
             

@@ -1,43 +1,76 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text;
+using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
+using Blogger.Core.Interfaces;
 using Blogger.Infrastructure;
+using Blogger.Infrastructure.Repositories;
 using Blogger.Infrastructure.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Blogger.WebApi
 {
     public class Startup
     {
+        private IConfiguration Configuration { get; }
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        private IConfiguration Configuration { get; }
-
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc();
 
-            // Register database
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("Database"));
             });
 
-            // Register Identity server (user authentication / authorization)
+            ConfigureAuthentication(services);
+            
+            services.AddAutoMapper();
+            services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddTransient<IRepository, Repository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IFollowerRepository, FollowerRepository>();
+        }
+
+        private void ConfigureAuthentication(IServiceCollection services)
+        {
+            // Register Identity server
             services.AddIdentity<ApplicationUser, IdentityRole>(options => { options.User.RequireUniqueEmail = true; })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            // Use JWT for authentication not sessions
+            services.AddAuthentication(x =>
+                {
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = false;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Secret"])),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+            
             // Disable redirect to login page and return 401
             services.ConfigureApplicationCookie(options =>
             {
@@ -47,12 +80,6 @@ namespace Blogger.WebApi
                     return Task.CompletedTask;
                 };
             });
-
-            // Register AutoMapper (used to map resources to entities)
-            services.AddAutoMapper();
-            
-            // DI Container
-            services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

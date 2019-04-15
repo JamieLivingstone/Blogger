@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Blogger.Core.Entities;
 using Blogger.Infrastructure;
 using Blogger.WebApi.Resources.User;
+using Bogus;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -14,7 +15,7 @@ using NUnit.Framework;
 namespace Blogger.Tests.Integration.Api
 {
     [TestFixture]
-    public class UsersTests
+    public class UserTests
     {
         [SetUp]
         public void SetUpTests()
@@ -33,32 +34,34 @@ namespace Blogger.Tests.Integration.Api
             var user = new SaveUserResource();
 
             // Act
-            var result = await _client.PostAsJsonAsync("/api/users", user);
+            var response = await _client.PostAsJsonAsync("/api/users", user);
 
             // Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
         }
 
         [TestCase]
         public async Task Register_GivenAValidModel_CreatesUser()
         {
             // Arrange
+            var faker = new Faker();
+            
             var user = new SaveUserResource
             {
-                UserName = "test",
-                Email = "example@mail.com",
+                UserName = faker.Person.UserName,
+                Email = faker.Person.Email,
                 Password = "SecureP455wordEx4mp!e"
             };
 
             // Act
-            var result = await _client.PostAsJsonAsync("/api/users", user);
+            var response = await _client.PostAsJsonAsync("/api/users", user);
 
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
                 Assert.That(context.Users.Count(), Is.EqualTo(1));
             }
         }
@@ -70,10 +73,10 @@ namespace Blogger.Tests.Integration.Api
             var login = new LoginUserResource();
 
             // Act
-            var result = await _client.PostAsJsonAsync("/api/users/login", login);
+            var response = await _client.PostAsJsonAsync("/api/users/login", login);
 
             // Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
         }
 
         [TestCase]
@@ -87,10 +90,10 @@ namespace Blogger.Tests.Integration.Api
             };
 
             // Act
-            var result = await _client.PostAsJsonAsync("/api/users/login", login);
+            var response = await _client.PostAsJsonAsync("/api/users/login", login);
 
             // Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [TestCase]
@@ -110,14 +113,14 @@ namespace Blogger.Tests.Integration.Api
             }
             
             // Act
-            var result = await _client.PostAsJsonAsync("/api/users/login", login);
-            var resultString = await result.Content.ReadAsStringAsync();
-            var user = JsonConvert.DeserializeObject<UserResource>(resultString);
+            var response = await _client.PostAsJsonAsync("/api/users/login", login);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<UserResource>(responseString);
             
             // Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(user.UserName, Is.EqualTo(login.UserName));
-            Assert.That(user.Token.Length, Is.GreaterThan(100));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(responseObject.UserName, Is.EqualTo(login.UserName));
+            Assert.That(responseObject.Token.Length, Is.GreaterThan(100));
         }
 
         [TestCase]
@@ -127,10 +130,26 @@ namespace Blogger.Tests.Integration.Api
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid_jwt");
 
             // Act
-            var result = await _client.GetAsync("/api/users");
+            var response = await _client.GetAsync("/api/users");
 
             // Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task GetCurrentUser_ValidJwt_ReturnsUser()
+        {
+            // Arrange
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            
+            // Act
+            var response = await _client.GetAsync("/api/users");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<UserResource>(responseString);
+            
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(responseObject.UserName, Is.EqualTo(signedInUser.UserName));
         }
     }
 }

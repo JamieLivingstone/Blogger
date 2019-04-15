@@ -8,5 +8,8 @@ namespace Blogger.Core.Entities
         public string Bio { get; set; }
         
         public string Image { get; set; }
+        
+        [NotMapped]
+        public bool Following { get; set; }
     }
 }

@@ -1,6 +1,6 @@
-namespace Blogger.WebApi.Resources.User
+namespace Blogger.WebApi.Resources.Profile
 {
-    public class UserResource
+    public class ProfileResource
     {
         public string Id { get; set; }
         
@@ -8,10 +8,10 @@ namespace Blogger.WebApi.Resources.User
         
         public string UserName { get; set; }
         
-        public string Token { get; set; }
-        
         public string Bio { get; set; }
         
         public string Image { get; set; }
+        
+        public bool Following { get; set; }
     }
 }

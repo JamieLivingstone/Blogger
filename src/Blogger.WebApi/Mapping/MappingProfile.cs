@@ -1,5 +1,6 @@
 using AutoMapper;
 using Blogger.Core.Entities;
+using Blogger.WebApi.Resources.Profile;
 using Blogger.WebApi.Resources.User;
 
 namespace Blogger.WebApi.Mapping
@@ -10,6 +11,7 @@ namespace Blogger.WebApi.Mapping
         {
             CreateMap<SaveUserResource, ApplicationUser>(MemberList.None);
             CreateMap<ApplicationUser, UserResource>(MemberList.None);
+            CreateMap<ApplicationUser, ProfileResource>(MemberList.None);
         }
     }
 }
