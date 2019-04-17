@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
@@ -61,6 +62,30 @@ namespace Blogger.WebApi.Controllers
             {
                 return NotFound();
             }
+
+            var result = _mapper.Map<ArticleResource>(article);
+
+            return Ok(result);
+        }
+        
+        [HttpDelete("{slug}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteArticleBySlug(string slug)
+        {
+            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            if (article.Author.Id != signedInUserId)
+            {
+                return Unauthorized("You do not have permissions to delete this article!");
+            }
+
+            await _repository.DeleteAsync(article);
 
             var result = _mapper.Map<ArticleResource>(article);
 

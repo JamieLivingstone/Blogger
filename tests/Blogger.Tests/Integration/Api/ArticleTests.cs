@@ -100,8 +100,8 @@ namespace Blogger.Tests.Integration.Api
         public async Task GetArticleBySlug_ArticleExists_ReturnsArticle()
         {
             // Arrange
-            var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 3);
-            var articleToRetrieve = articles[1];
+            var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
+            var articleToRetrieve = articles[0];
             
             // Act
             var response = await _client.GetAsync($"/api/articles/{articleToRetrieve.Slug}");
@@ -113,6 +113,74 @@ namespace Blogger.Tests.Integration.Api
             Assert.That(responseObject.Slug, Is.EqualTo(articleToRetrieve.Slug));
             Assert.That(responseObject.Body, Is.EqualTo(articleToRetrieve.Body));
             Assert.That(responseObject.Author.UserName, Is.EqualTo(articleToRetrieve.Author.UserName));
+        }
+
+        [TestCase]
+        public async Task DeleteArticleBySlug_NotAuthorized_ReturnsUnauthorized()
+        {
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/fake-article-slug");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task DeleteArticleBySlug_ArticleDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/fake-article-slug");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task DeleteArticleBySlug_ArticleExistsButUserIsNotTheAuthor_ReturnsUnauthorized()
+        {
+            // Arrange
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 5);
+            var articleToDelete = seed[3];
+
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/{articleToDelete.Slug}");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task DeleteArticleBySlug_ArticleExistsAndUserIsTheAuthor_DeletesArticleAndReturnsOk()
+        {
+            // Arrange
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            
+            var article = new SaveArticleResource
+            {
+                Title = _faker.Lorem.Word(),
+                Description = _faker.Lorem.Sentence(),
+                Body = _faker.Lorem.Sentences()
+            };
+            
+            // Act
+            var createResponse = await _client.PostAsJsonAsync("/api/articles", article);
+            var createSting = await createResponse.Content.ReadAsStringAsync();
+            var createResultObject = JsonConvert.DeserializeObject<ArticleResource>(createSting);
+            
+            var response = await _client.DeleteAsync($"/api/articles/{createResultObject.Slug}");
+            
+            // Assert
+            using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(dbContext.Articles.Count(), Is.EqualTo(0));
+            }
         }
     }
 }
