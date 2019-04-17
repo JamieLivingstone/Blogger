@@ -10,6 +10,9 @@ namespace Blogger.Core.Entities
         public string Image { get; set; }
         
         [NotMapped]
+        public string Token { get; set; }
+        
+        [NotMapped]
         public bool Following { get; set; }
     }
 }

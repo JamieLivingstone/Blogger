@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Blogger.Core.Entities;
 using Blogger.Infrastructure.Security;
-using Blogger.WebApi.Resources.User;
 using Bogus;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,9 +42,9 @@ namespace Blogger.Tests.Integration
             return users.ToList();
         }
 
-        public static async Task<UserResource> SeedUserAndMutateAuthorizationHeader(CustomWebApplicationFactory factory, HttpClient httpClient)
+        public static async Task<ApplicationUser> SeedUserAndMutateAuthorizationHeader(CustomWebApplicationFactory factory, HttpClient httpClient)
         {
-            var user = new UserResource
+            var user = new ApplicationUser
             {
                 UserName = "test",
                 Email = "test@mail.com"
@@ -57,19 +55,11 @@ namespace Blogger.Tests.Integration
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var jwtTokenGenerator = scope.ServiceProvider.GetRequiredService<IJwtTokenGenerator>();
                 
-                var applicationUser = new ApplicationUser
-                {
-                    UserName = user.UserName,
-                    Email = user.Email
-                };
-                
-                await userManager.CreateAsync(applicationUser, "SomeCompl3xP455word@123");
+                await userManager.CreateAsync(user, "SomeCompl3xP455word@123");
 
-                var token = jwtTokenGenerator.CreateToken(applicationUser);
+                var token = jwtTokenGenerator.CreateToken(user);
                 user.Token = token;
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                user.Id = applicationUser.Id;
             }
 
             return user;

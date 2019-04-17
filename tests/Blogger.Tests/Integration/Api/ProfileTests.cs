@@ -101,7 +101,7 @@ namespace Blogger.Tests.Integration.Api
         public async Task UnfollowUser_IsAlreadyFollowing_RemovesFollowAndReturnsProfileResource()
         {
             // Arrange
-            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             var userToFollow = seed[0];
             
