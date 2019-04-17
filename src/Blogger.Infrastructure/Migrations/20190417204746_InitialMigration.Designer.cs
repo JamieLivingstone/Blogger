@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Blogger.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190411215851_InitialMigration")]
+    [Migration("20190417204746_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,6 +73,47 @@ namespace Blogger.Infrastructure.Migrations
                         .HasName("UserNameIndex");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Article", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("AuthorId");
+
+                    b.Property<string>("Body");
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Slug");
+
+                    b.Property<string>("Title");
+
+                    b.Property<DateTime>("UpdatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Follower", b =>
+                {
+                    b.Property<string>("TargetId");
+
+                    b.Property<string>("ObserverId");
+
+                    b.Property<int>("Id");
+
+                    b.HasKey("TargetId", "ObserverId");
+
+                    b.HasIndex("ObserverId");
+
+                    b.ToTable("Followers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -180,6 +221,26 @@ namespace Blogger.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Article", b =>
+                {
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Follower", b =>
+                {
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Observer")
+                        .WithMany()
+                        .HasForeignKey("ObserverId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Target")
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

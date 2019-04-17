@@ -85,13 +85,13 @@ namespace Blogger.Tests.Integration.Api
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var followerEntity = await context.Followers.FirstOrDefaultAsync();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var followerEntity = await dbContext.Followers.FirstOrDefaultAsync();
 
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
                 Assert.That(responseObject.UserName, Is.EqualTo(userToFollow.UserName));
                 Assert.That(responseObject.Following, Is.EqualTo(true));
-                Assert.That(context.Followers.Count(), Is.EqualTo(1));
+                Assert.That(dbContext.Followers.Count(), Is.EqualTo(1));
                 Assert.That(followerEntity.TargetId, Is.EqualTo(userToFollow.Id));
                 Assert.That(followerEntity.ObserverId, Is.EqualTo(signedInUser.Id));
             }

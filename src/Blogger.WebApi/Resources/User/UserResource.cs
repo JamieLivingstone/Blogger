@@ -2,8 +2,6 @@ namespace Blogger.WebApi.Resources.User
 {
     public class UserResource
     {
-        public string Id { get; set; }
-        
         public string Email { get; set; }
         
         public string UserName { get; set; }

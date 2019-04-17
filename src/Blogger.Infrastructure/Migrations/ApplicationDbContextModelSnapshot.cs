@@ -73,6 +73,47 @@ namespace Blogger.Infrastructure.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("Blogger.Core.Entities.Article", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("AuthorId");
+
+                    b.Property<string>("Body");
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Slug");
+
+                    b.Property<string>("Title");
+
+                    b.Property<DateTime>("UpdatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Follower", b =>
+                {
+                    b.Property<string>("TargetId");
+
+                    b.Property<string>("ObserverId");
+
+                    b.Property<int>("Id");
+
+                    b.HasKey("TargetId", "ObserverId");
+
+                    b.HasIndex("ObserverId");
+
+                    b.ToTable("Followers");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -178,6 +219,26 @@ namespace Blogger.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Article", b =>
+                {
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId");
+                });
+
+            modelBuilder.Entity("Blogger.Core.Entities.Follower", b =>
+                {
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Observer")
+                        .WithMany()
+                        .HasForeignKey("ObserverId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Blogger.Core.Entities.ApplicationUser", "Target")
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
