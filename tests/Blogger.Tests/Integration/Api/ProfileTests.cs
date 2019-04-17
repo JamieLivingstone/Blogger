@@ -103,11 +103,12 @@ namespace Blogger.Tests.Integration.Api
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
-            var userToFollow = seed[0];
+            var target = seed[0];
             
             // Act
-            await _client.PostAsync($"api/profiles/{userToFollow.UserName}/follow",  null);
-            var response = await _client.DeleteAsync($"api/profiles/{userToFollow.UserName}/follow");
+            await _client.PostAsync($"api/profiles/{target.UserName}/follow", null);
+            
+            var response = await _client.DeleteAsync($"api/profiles/{target.UserName}/follow");
         
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())

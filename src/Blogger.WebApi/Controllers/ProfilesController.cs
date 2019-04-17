@@ -29,7 +29,7 @@ namespace Blogger.WebApi.Controllers
         [HttpGet("{userName}")]
         public async Task<IActionResult> GetProfileByUsername(string userName)
         {
-            var profile = await GetProfile(userName);
+            var profile = await GetProfileAsync(userName);
 
             if (profile == null)
             {
@@ -43,7 +43,7 @@ namespace Blogger.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> FollowUser(string userName)
         {
-            var target = await GetProfile(userName);
+            var target = await _userRepository.GetByUserNameAsync(userName);
 
             if (target == null)
             {
@@ -63,33 +63,32 @@ namespace Blogger.WebApi.Controllers
             
             await _repository.AddAsync(follower);
 
-            target.Following = true;
+            var result = await GetProfileAsync(userName);
             
-            return Created("", target);
+            return Created("", result);
         }
 
         [HttpDelete("{userName}/follow")]
         [Authorize]
         public async Task<IActionResult> UnfollowUser(string userName)
         {
-            var target = await GetProfile(userName);
+            var target = await _userRepository.GetByUserNameAsync(userName);
+            
+            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (target == null)
             {
                 return NotFound();
             }
+            
+            await _followerRepository.RemoveAsync(target.Id, signedInUserId);
 
-            if (target.Following)
-            {
-                var signedInUserId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
-                await _followerRepository.RemoveAsync(target.Id, signedInUserId);
-                target.Following = false;
-            }
+            var result = await GetProfileAsync(userName);
 
-            return Ok(target);
+            return Ok(result);
         }
 
-        private async Task<ProfileResource> GetProfile(string userName)
+        private async Task<ProfileResource> GetProfileAsync(string userName)
         {
             var user = await _userRepository.GetByUserNameAsync(userName);
 

@@ -77,10 +77,42 @@ namespace Blogger.Tests.Integration.Api
                 Assert.That(responseObject.Title, Is.EqualTo(article.Title));
                 Assert.That(responseObject.Description, Is.EqualTo(article.Description));
                 Assert.That(responseObject.Body, Is.EqualTo(article.Body));
-                Assert.That(responseObject.Author.Email, Is.EqualTo(signedInUser.Email));
+                Assert.That(responseObject.Author.UserName, Is.EqualTo(signedInUser.UserName));
                 Assert.That(dbContext.Articles.Count(), Is.EqualTo(1));
             }
 
+        }
+
+        [TestCase]
+        public async Task GetArticleBySlug_DoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            const string slug = "does-not-exist";
+
+            // Act
+            var response = await _client.GetAsync($"/api/articles/{slug}");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task GetArticleBySlug_ArticleExists_ReturnsArticle()
+        {
+            // Arrange
+            var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 3);
+            var articleToRetrieve = articles[1];
+            
+            // Act
+            var response = await _client.GetAsync($"/api/articles/{articleToRetrieve.Slug}");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<ArticleResource>(responseString);
+        
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(responseObject.Slug, Is.EqualTo(articleToRetrieve.Slug));
+            Assert.That(responseObject.Body, Is.EqualTo(articleToRetrieve.Body));
+            Assert.That(responseObject.Author.UserName, Is.EqualTo(articleToRetrieve.Author.UserName));
         }
     }
 }

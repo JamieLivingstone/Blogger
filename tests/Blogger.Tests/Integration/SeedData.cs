@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Blogger.Core.Entities;
+using Blogger.Infrastructure;
 using Blogger.Infrastructure.Security;
 using Bogus;
 using Microsoft.AspNetCore.Identity;
@@ -15,9 +17,9 @@ namespace Blogger.Tests.Integration
     {
         public static async Task<List<ApplicationUser>> SeedUsersAsync(CustomWebApplicationFactory factory, int usersToCreate = 5)
         {
-            var users = new ApplicationUser[usersToCreate];
             var faker = new Faker();
-            
+            var users = new ApplicationUser[usersToCreate];
+
             for (var i = 0; i < users.Length; i++)
             {
                 users[i] = new ApplicationUser
@@ -63,6 +65,42 @@ namespace Blogger.Tests.Integration
             }
 
             return user;
+        }
+
+        public static async Task<List<Article>> SeedArticlesAsync(CustomWebApplicationFactory factory,  int articlesToCreate = 5)
+        {
+            var faker = new Faker();
+            var articles = new Article[articlesToCreate];
+            var users = await SeedUsersAsync(factory, 3);
+
+            for (var i = 0; i < articles.Length; i++)
+            {
+                var title = faker.Lorem.Sentence(4);
+                
+                articles[i] = new Article
+                {
+                    Slug = title.GenerateSlug(),
+                    Title = title,
+                    Description = faker.Lorem.Sentence(),
+                    Body = faker.Lorem.Sentences(),
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    Author = users[2]
+                };
+            }
+            
+            using (var scope = factory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                foreach (var article in articles)
+                {
+                    await dbContext.AddAsync(article);
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
+            return articles.ToList();
         }
     }
 }

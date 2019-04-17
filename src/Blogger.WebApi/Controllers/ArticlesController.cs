@@ -1,5 +1,4 @@
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
@@ -9,7 +8,6 @@ using Blogger.WebApi.Resources.Article;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Blogger.WebApi.Controllers
 {
@@ -20,12 +18,19 @@ namespace Blogger.WebApi.Controllers
         private readonly IMapper _mapper;
         private readonly IRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IArticleRepository _articleRepository;
 
-        public ArticlesController(IMapper mapper, IRepository repository, UserManager<ApplicationUser> userManager)
+        public ArticlesController(
+            IMapper mapper, 
+            IRepository repository, 
+            UserManager<ApplicationUser> userManager,
+            IArticleRepository articleRepository
+        )
         {
             _mapper = mapper;
             _repository = repository;
             _userManager = userManager;
+            _articleRepository = articleRepository;
         }
         
         [HttpPost]
@@ -45,6 +50,21 @@ namespace Blogger.WebApi.Controllers
             var result = _mapper.Map<ArticleResource>(article);
            
             return Created($"api/articles/{article.Id}", result);
+        }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetArticleBySlug(string slug)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var result = _mapper.Map<ArticleResource>(article);
+
+            return Ok(result);
         }
     }
 }
