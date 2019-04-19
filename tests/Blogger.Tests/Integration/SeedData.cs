@@ -92,15 +92,42 @@ namespace Blogger.Tests.Integration
             using (var scope = factory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                foreach (var article in articles)
-                {
-                    await dbContext.AddAsync(article);
-                    await dbContext.SaveChangesAsync();
-                }
+                await dbContext.Articles.AddRangeAsync(articles);
+                await dbContext.SaveChangesAsync();
             }
 
             return articles.ToList();
+        }
+
+        public static async Task<Article> SeedArticleWithCommentsAsync(CustomWebApplicationFactory factory, string authorId, int commentsToCreate)
+        {
+            var faker = new Faker();
+            var seededArticles = await SeedArticlesAsync(factory, 1);
+            var article = seededArticles[0];
+            var comments = new Comment[commentsToCreate];
+
+            for (var i = 0; i < comments.Length; i++)
+            {
+                comments[i] = new Comment
+                {
+                    Body = faker.Lorem.Sentence(),
+                    ArticleId = article.Id,
+                    AuthorId = authorId,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+            }
+            
+            using (var scope = factory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await dbContext.Comments.AddRangeAsync(comments);
+                await dbContext.SaveChangesAsync();
+            }
+            
+            article.Comments = comments.ToList();
+
+            return article;
         }
     }
 }

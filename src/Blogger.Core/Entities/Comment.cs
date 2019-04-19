@@ -10,7 +10,7 @@ namespace Blogger.Core.Entities
         
         public string Body { get; set; }
         
-        public int AuthorId { get; set; }
+        public string AuthorId { get; set; }
         
         public ApplicationUser Author { get; set; }
         

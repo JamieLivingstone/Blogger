@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -239,6 +240,37 @@ namespace Blogger.Tests.Integration.Api
                 Assert.That(responseObject.Author.UserName, Is.EqualTo(signedInUser.UserName));
                 Assert.That(dbContext.Comments.Count(), Is.EqualTo(1));
             }
+        }
+
+        [TestCase]
+        public async Task GetComments_ArticleDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            const string slug = "i-do-not-exist";
+            
+            // Act
+            var response = await _client.GetAsync($"/api/articles/{slug}/comments");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task GetComments_ArticleExistsWithComments_ReturnsComments()
+        {
+            // Arrange
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            
+            // Act
+            var response = await _client.GetAsync($"/api/articles/{article.Slug}/comments");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseArray = JsonConvert.DeserializeObject<List<CommentResource>>(responseString);
+            
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(responseArray.Count, Is.EqualTo(article.Comments.Count));
+            Assert.That(responseArray[0].Author.UserName, Is.EqualTo(signedInUser.UserName));
         }
     }
 }

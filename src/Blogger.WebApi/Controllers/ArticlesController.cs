@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -121,8 +122,8 @@ namespace Blogger.WebApi.Controllers
             return Created($"/api/articles/{article.Slug}/comments/{comment.Id}", result);
         }
 
-        [HttpGet("{slug}/articles")]
-        public async Task<IActionResult> GetCommentsBySlug(string slug)
+        [HttpGet("{slug}/comments")]
+        public async Task<IActionResult> GetComments(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
 
@@ -131,7 +132,11 @@ namespace Blogger.WebApi.Controllers
                 return NotFound();
             }
 
-            return Ok();
+            var comments = await _articleRepository.GetCommentsByArticleIdAsync(article.Id);
+
+            var result = _mapper.Map<IList<CommentResource>>(comments);
+            
+            return Ok(result);
         }
     }
 }
