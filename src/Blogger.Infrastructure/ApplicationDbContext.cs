@@ -8,6 +8,7 @@ namespace Blogger.Infrastructure
     {
         public DbSet<Follower> Followers { get; set; }
         public DbSet<Article> Articles { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
@@ -18,7 +19,18 @@ namespace Blogger.Infrastructure
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Follower>().HasKey(f => new { f.TargetId, f.ObserverId });
+            modelBuilder.Entity<Follower>().HasKey(favorite => new { favorite.TargetId, favorite.ObserverId });
+
+            modelBuilder.Entity<Article>()
+                .HasMany(article => article.Comments)
+                .WithOne(comment => comment.Article)
+                .HasForeignKey(comment => comment.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Article>()
+                .HasOne(article => article.Author)
+                .WithMany(author => author.Articles)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

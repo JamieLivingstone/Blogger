@@ -6,6 +6,7 @@ using Blogger.Core.Entities;
 using Blogger.Core.Interfaces;
 using Blogger.WebApi.Filters;
 using Blogger.WebApi.Resources.Article;
+using Blogger.WebApi.Resources.Comment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -90,6 +91,47 @@ namespace Blogger.WebApi.Controllers
             var result = _mapper.Map<ArticleResource>(article);
 
             return Ok(result);
+        }
+
+        [HttpPost("{slug}/comments")]
+        [Authorize]
+        [ValidateModel]
+        public async Task<IActionResult> AddCommentToArticle(string slug, [FromBody] SaveCommentResource saveCommentResource)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var comment = new Comment
+            {
+                Body = saveCommentResource.Body,
+                ArticleId = article.Id,
+                Author = await _userManager.GetUserAsync(HttpContext.User),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            await _repository.AddAsync(comment);
+
+            var result = _mapper.Map<CommentResource>(comment);
+            
+            return Created($"/api/articles/{article.Slug}/comments/{comment.Id}", result);
+        }
+
+        [HttpGet("{slug}/articles")]
+        public async Task<IActionResult> GetCommentsBySlug(string slug)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            return Ok();
         }
     }
 }
