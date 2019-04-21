@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Blogger.Core.Entities
 {
@@ -20,5 +21,10 @@ namespace Blogger.Core.Entities
         public ApplicationUser Author { get; set; }
         
         public List<Comment> Comments { get; set; }
+        
+        public List<ArticleFavorite> Favorites { get; set; }
+        
+        [NotMapped]
+        public bool Favorited { get; set; }
     }
 }

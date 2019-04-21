@@ -17,5 +17,7 @@ namespace Blogger.Core.Entities
         
         [NotMapped]
         public bool Following { get; set; }
+
+        public IEnumerable<ArticleFavorite> Favorites { get; set; }
     }
 }

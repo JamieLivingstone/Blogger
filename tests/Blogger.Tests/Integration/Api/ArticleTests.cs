@@ -343,5 +343,28 @@ namespace Blogger.Tests.Integration.Api
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
+
+        [TestCase]
+        public async Task Favorite_NotSignedIn_ReturnsUnauthorized()
+        {
+            // Act
+            var response = await _client.PostAsync($"/api/articles/article-name/favorite", null);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+        
+        [TestCase]
+        public async Task Favorite_ArticleDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange 
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            
+            // Act
+            var response = await _client.PostAsync("/api/articles/does-not-exist/favorite", null);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
     }
 }

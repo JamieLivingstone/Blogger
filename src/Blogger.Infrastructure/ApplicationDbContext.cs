@@ -9,7 +9,8 @@ namespace Blogger.Infrastructure
         public DbSet<Follower> Followers { get; set; }
         public DbSet<Article> Articles { get; set; }
         public DbSet<Comment> Comments { get; set; }
-
+        public DbSet<ArticleFavorite> Favorites { get; set; }
+        
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
             
@@ -31,6 +32,16 @@ namespace Blogger.Infrastructure
                 .HasOne(article => article.Author)
                 .WithMany(author => author.Articles)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ArticleFavorite>()
+                .HasOne(favorite => favorite.Article)
+                .WithMany(article => article.Favorites)
+                .HasForeignKey(favorite => favorite.ArticleId);
+
+            modelBuilder.Entity<ArticleFavorite>()
+                .HasOne(favorite => favorite.Observer)
+                .WithMany(observer => observer.Favorites)
+                .HasForeignKey(favorite => favorite.ObserverId);
         }
     }
 }

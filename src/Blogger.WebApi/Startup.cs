@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
 using Blogger.Core.Interfaces;
+using Blogger.Core.Services;
 using Blogger.Infrastructure;
 using Blogger.Infrastructure.Repositories;
 using Blogger.Infrastructure.Security;
@@ -39,6 +40,7 @@ namespace Blogger.WebApi
             ConfigureAuthentication(services);
             
             services.AddAutoMapper();
+            services.AddTransient<IUserResolverService, UserResolverService>();
             services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddTransient<IRepository, Repository>();
             services.AddTransient<IUserRepository, UserRepository>();

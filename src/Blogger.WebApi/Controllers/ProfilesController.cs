@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
@@ -17,13 +16,21 @@ namespace Blogger.WebApi.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IRepository _repository;
         private readonly IFollowerRepository _followerRepository;
+        private readonly IUserResolverService _userResolverService;
 
-        public ProfilesController(IMapper mapper, IUserRepository userRepository, IRepository repository, IFollowerRepository followerRepository)
+        public ProfilesController(
+            IMapper mapper, 
+            IUserRepository userRepository, 
+            IRepository repository, 
+            IFollowerRepository followerRepository,
+            IUserResolverService userResolverService
+        )
         {
             _mapper = mapper;
             _userRepository = userRepository;
             _repository = repository;
             _followerRepository = followerRepository;
+            _userResolverService = userResolverService;
         }
         
         [HttpGet("{userName}")]
@@ -58,7 +65,7 @@ namespace Blogger.WebApi.Controllers
             var follower = new Follower
             {
                 TargetId = target.Id,
-                ObserverId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ObserverId = _userResolverService.GetUserId()
             };
             
             await _repository.AddAsync(follower);
@@ -74,14 +81,12 @@ namespace Blogger.WebApi.Controllers
         {
             var target = await _userRepository.GetByUserNameAsync(userName);
             
-            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (target == null)
             {
                 return NotFound();
             }
             
-            await _followerRepository.RemoveAsync(target.Id, signedInUserId);
+            await _followerRepository.RemoveAsync(target.Id, _userResolverService.GetUserId());
 
             var result = await GetProfileAsync(userName);
 
@@ -99,11 +104,11 @@ namespace Blogger.WebApi.Controllers
 
             var profile = _mapper.Map<ProfileResource>(user);
 
-            var signedInUserId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = _userResolverService.GetUserId();
 
-            if (signedInUserId != null)
+            if (userId != null)
             {
-                profile.Following = await _followerRepository.IsFollowing(user.Id, signedInUserId);
+                profile.Following = await _followerRepository.IsFollowing(user.Id, userId);
             }
 
             return profile;

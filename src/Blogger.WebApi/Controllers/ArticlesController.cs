@@ -20,23 +20,23 @@ namespace Blogger.WebApi.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IRepository _repository;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IArticleRepository _articleRepository;
         private readonly ICommentRepository _commentRepository;
+        private readonly IUserResolverService _userResolverService;
 
         public ArticlesController(
             IMapper mapper, 
             IRepository repository, 
-            UserManager<ApplicationUser> userManager,
             IArticleRepository articleRepository,
-            ICommentRepository commentRepository
+            ICommentRepository commentRepository,
+            IUserResolverService userResolverService
         )
         {
             _mapper = mapper;
             _repository = repository;
-            _userManager = userManager;
             _articleRepository = articleRepository;
             _commentRepository = commentRepository;
+            _userResolverService = userResolverService;
         }
         
         [HttpPost]
@@ -49,7 +49,7 @@ namespace Blogger.WebApi.Controllers
             var article = _mapper.Map<Article>(saveArticleResource);
             article.CreatedAt = now;
             article.UpdatedAt = now;
-            article.Author = await _userManager.GetUserAsync(HttpContext.User);
+            article.Author = await _userResolverService.GetUserAsync();
 
             await _repository.AddAsync(article);
 
@@ -77,7 +77,6 @@ namespace Blogger.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteArticleBySlug(string slug)
         {
-            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var article = await _articleRepository.GetBySlugAsync(slug);
 
             if (article == null)
@@ -85,7 +84,7 @@ namespace Blogger.WebApi.Controllers
                 return NotFound();
             }
 
-            if (article.Author.Id != signedInUserId)
+            if (article.Author.Id != _userResolverService.GetUserId())
             {
                 return Unauthorized("You do not have permissions to delete this article!");
             }
@@ -113,7 +112,7 @@ namespace Blogger.WebApi.Controllers
             {
                 Body = saveCommentResource.Body,
                 ArticleId = article.Id,
-                Author = await _userManager.GetUserAsync(HttpContext.User),
+                Author = await _userResolverService.GetUserAsync(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -148,14 +147,13 @@ namespace Blogger.WebApi.Controllers
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
             var comment = await _commentRepository.GetByIdAsync(commentId);
-            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (article == null || comment == null)
             {
                 return NotFound();
             }
 
-            if (comment.Author.Id != signedInUserId)
+            if (comment.Author.Id != _userResolverService.GetUserId())
             {
                 return Unauthorized();
             }
@@ -165,6 +163,20 @@ namespace Blogger.WebApi.Controllers
             var result = _mapper.Map<CommentResource>(comment);
 
             return Ok(result);
+        }
+
+        [HttpPost("{slug}/favorite")]
+        [Authorize]
+        public async Task<IActionResult> Favorite(string slug)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+            
+            return Ok();
         }
     }
 }

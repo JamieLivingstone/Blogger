@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
+using Blogger.Core.Interfaces;
 using Blogger.Infrastructure.Security;
 using Blogger.WebApi.Filters;
 using Blogger.WebApi.Resources.User;
@@ -20,18 +20,21 @@ namespace Blogger.WebApi.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMapper _mapper;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IUserResolverService _userResolverService;
 
         public UsersController(
             UserManager<ApplicationUser> userManager, 
             SignInManager<ApplicationUser> signInManager,
             IMapper mapper,
-            IJwtTokenGenerator jwtTokenGenerator
+            IJwtTokenGenerator jwtTokenGenerator,
+            IUserResolverService userResolverService
         )
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _mapper = mapper;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _userResolverService = userResolverService;
         }
         
         [HttpPost]
@@ -70,7 +73,7 @@ namespace Blogger.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetSignedInUser()
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var user = await _userResolverService.GetUserAsync();
             
             return Ok(FormattedUserResponse(user));
         }
