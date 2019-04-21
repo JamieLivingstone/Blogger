@@ -272,5 +272,76 @@ namespace Blogger.Tests.Integration.Api
             Assert.That(responseArray.Count, Is.EqualTo(article.Comments.Count));
             Assert.That(responseArray[0].Author.UserName, Is.EqualTo(signedInUser.UserName));
         }
+
+        [TestCase]
+        public async Task DeleteComment_NotSignedIn_ReturnsUnauthorized()
+        {
+            // Slug
+            const string slug = "does-not-exist";
+            const int commentId = 1;
+            
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/{slug}/comments/{commentId}");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task DeleteComment_ArticleDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/does-not-exist/comments/1");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task DeleteComment_CommentDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/999");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+        
+        [TestCase]
+        public async Task DeleteComment_SignedInUserDidNotCreateTheComment_ReturnsUnauthorized()
+        {
+            // Arrange
+            var seededUsers = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, seededUsers[0].Id, 1);
+            
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/{article.Comments[0].Id}");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task DeleteComment_CommentExistsAndWasCreatedBySignedInUser_DeletesComment()
+        {
+            // Arrange
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            var commentId = article.Comments[0].Id;
+            
+            // Act
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/{commentId}");
+            
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
     }
 }

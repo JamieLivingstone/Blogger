@@ -44,6 +44,7 @@ namespace Blogger.WebApi
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IFollowerRepository, FollowerRepository>();
             services.AddTransient<IArticleRepository, ArticleRepository>();
+            services.AddTransient<ICommentRepository, CommentRepository>();
         }
 
         private void ConfigureAuthentication(IServiceCollection services)

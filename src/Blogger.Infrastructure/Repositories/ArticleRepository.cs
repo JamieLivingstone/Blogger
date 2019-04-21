@@ -15,22 +15,13 @@ namespace Blogger.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        
+
         public async Task<Article> GetBySlugAsync(string slug)
         {
             return await _dbContext.Articles
                 .Where(article => article.Slug == slug)
                 .Include(article => article.Author)
                 .FirstOrDefaultAsync();
-        }
-
-        public async Task<List<Comment>> GetCommentsByArticleIdAsync(int articleId)
-        {
-            return await _dbContext.Comments
-                .Where(comment => comment.ArticleId == articleId)
-                .Include(comment => comment.Author)
-                .OrderByDescending(comment => comment.CreatedAt)
-                .ToListAsync();
         }
     }
 }

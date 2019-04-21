@@ -7,6 +7,5 @@ namespace Blogger.Core.Interfaces
     public interface IArticleRepository
     {
         Task<Article> GetBySlugAsync(string slug);
-        Task<List<Comment>> GetCommentsByArticleIdAsync(int articleId);
     }
 }

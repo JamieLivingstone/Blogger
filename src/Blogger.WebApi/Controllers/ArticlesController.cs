@@ -22,18 +22,21 @@ namespace Blogger.WebApi.Controllers
         private readonly IRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IArticleRepository _articleRepository;
+        private readonly ICommentRepository _commentRepository;
 
         public ArticlesController(
             IMapper mapper, 
             IRepository repository, 
             UserManager<ApplicationUser> userManager,
-            IArticleRepository articleRepository
+            IArticleRepository articleRepository,
+            ICommentRepository commentRepository
         )
         {
             _mapper = mapper;
             _repository = repository;
             _userManager = userManager;
             _articleRepository = articleRepository;
+            _commentRepository = commentRepository;
         }
         
         [HttpPost]
@@ -132,10 +135,35 @@ namespace Blogger.WebApi.Controllers
                 return NotFound();
             }
 
-            var comments = await _articleRepository.GetCommentsByArticleIdAsync(article.Id);
+            var comments = await _commentRepository.GetAllByArticleIdAsync(article.Id);
 
             var result = _mapper.Map<IList<CommentResource>>(comments);
             
+            return Ok(result);
+        }
+
+        [HttpDelete("{slug}/comments/{commentId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteComment(string slug, int commentId)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+            var comment = await _commentRepository.GetByIdAsync(commentId);
+            var signedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (article == null || comment == null)
+            {
+                return NotFound();
+            }
+
+            if (comment.Author.Id != signedInUserId)
+            {
+                return Unauthorized();
+            }
+            
+            await _repository.DeleteAsync(comment);
+
+            var result = _mapper.Map<CommentResource>(comment);
+
             return Ok(result);
         }
     }
