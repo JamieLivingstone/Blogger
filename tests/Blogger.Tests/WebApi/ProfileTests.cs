@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
-namespace Blogger.Tests.Integration.Api
+namespace Blogger.Tests.WebApi
 {
     [TestFixture]
     public class ProfileTests

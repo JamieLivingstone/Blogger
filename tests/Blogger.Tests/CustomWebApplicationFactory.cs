@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Blogger.Tests.Integration
+namespace Blogger.Tests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Startup>
     {

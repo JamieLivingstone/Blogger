@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
-namespace Blogger.Tests.Integration.Api
+namespace Blogger.Tests.WebApi
 {
     [TestFixture]
     public class ArticleTests
@@ -32,21 +32,21 @@ namespace Blogger.Tests.Integration.Api
         {
             // Act
             var response = await _client.PostAsync("/api/articles", null);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-        
+
         [TestCase]
         public async Task CreateArticle_InvalidResource_ReturnsBadRequest()
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var article = new SaveArticleResource();
-            
+
             // Act
             var response = await _client.PostAsJsonAsync("/api/articles", article);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
         }
@@ -56,25 +56,25 @@ namespace Blogger.Tests.Integration.Api
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            
+
             var article = new SaveArticleResource
             {
                 Title = _faker.Lorem.Word(),
                 Description = _faker.Lorem.Sentence(),
                 Body = _faker.Lorem.Sentences()
             };
-            
+
             // Act
             var response = await _client.PostAsJsonAsync("/api/articles", article);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<ArticleResource>(responseString);
-            
+
             // Assert
 
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                
+
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
                 Assert.That(responseObject.Title, Is.EqualTo(article.Title));
                 Assert.That(responseObject.Description, Is.EqualTo(article.Description));
@@ -104,12 +104,12 @@ namespace Blogger.Tests.Integration.Api
             // Arrange
             var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
             var articleToRetrieve = articles[0];
-            
+
             // Act
             var response = await _client.GetAsync($"/api/articles/{articleToRetrieve.Slug}");
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<ArticleResource>(responseString);
-        
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.Slug, Is.EqualTo(articleToRetrieve.Slug));
@@ -121,7 +121,7 @@ namespace Blogger.Tests.Integration.Api
         public async Task DeleteArticleBySlug_NotSignedIn_ReturnsUnauthorized()
         {
             // Act
-            var response = await _client.DeleteAsync($"/api/articles/fake-article-slug");
+            var response = await _client.DeleteAsync("/api/articles/fake-article-slug");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
@@ -134,7 +134,7 @@ namespace Blogger.Tests.Integration.Api
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
 
             // Act
-            var response = await _client.DeleteAsync($"/api/articles/fake-article-slug");
+            var response = await _client.DeleteAsync("/api/articles/fake-article-slug");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
@@ -145,7 +145,7 @@ namespace Blogger.Tests.Integration.Api
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 5);
+            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 4);
             var articleToDelete = seed[3];
 
             // Act
@@ -160,21 +160,21 @@ namespace Blogger.Tests.Integration.Api
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            
+
             var article = new SaveArticleResource
             {
                 Title = _faker.Lorem.Word(),
                 Description = _faker.Lorem.Sentence(),
                 Body = _faker.Lorem.Sentences()
             };
-            
+
             // Act
             var createResponse = await _client.PostAsJsonAsync("/api/articles", article);
             var createSting = await createResponse.Content.ReadAsStringAsync();
             var createResultObject = JsonConvert.DeserializeObject<ArticleResource>(createSting);
-            
+
             var response = await _client.DeleteAsync($"/api/articles/{createResultObject.Slug}");
-            
+
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
@@ -184,7 +184,7 @@ namespace Blogger.Tests.Integration.Api
                 Assert.That(dbContext.Articles.Count(), Is.EqualTo(0));
             }
         }
-        
+
         [TestCase]
         public async Task AddCommentToArticle_NotSignedIn_ReturnsUnauthorized()
         {
@@ -192,44 +192,44 @@ namespace Blogger.Tests.Integration.Api
             var comment = new SaveCommentResource();
             var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
             var article = seed[0];
-            
+
             // Act
             var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", comment);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-        
+
         [TestCase]
         public async Task AddCommentToArticle_ArticleDoesNotExist_ReturnsNotFound()
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var comment = new SaveCommentResource { Body = "Test comment!" };
+            var comment = new SaveCommentResource {Body = "Test comment!"};
             const string slug = "i-do-not-exist";
-            
+
             // Act
             var response = await _client.PostAsJsonAsync($"/api/articles/{slug}/comments", comment);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
-        
+
         [TestCase]
         public async Task AddCommentToArticle_ArticleExists_AddsCommentAndReturnsComment()
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            
-            var comment = new SaveCommentResource { Body = "Test comment!" };
+
+            var comment = new SaveCommentResource {Body = "Test comment!"};
             var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
             var article = seed[0];
-            
+
             // Act
             var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", comment);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<CommentResource>(responseString);
-            
+
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
@@ -247,7 +247,7 @@ namespace Blogger.Tests.Integration.Api
         {
             // Arrange
             const string slug = "i-do-not-exist";
-            
+
             // Act
             var response = await _client.GetAsync($"/api/articles/{slug}/comments");
 
@@ -261,12 +261,12 @@ namespace Blogger.Tests.Integration.Api
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
-            
+
             // Act
             var response = await _client.GetAsync($"/api/articles/{article.Slug}/comments");
             var responseString = await response.Content.ReadAsStringAsync();
             var responseArray = JsonConvert.DeserializeObject<List<CommentResource>>(responseString);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseArray.Count, Is.EqualTo(article.Comments.Count));
@@ -279,7 +279,7 @@ namespace Blogger.Tests.Integration.Api
             // Slug
             const string slug = "does-not-exist";
             const int commentId = 1;
-            
+
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{slug}/comments/{commentId}");
 
@@ -294,7 +294,7 @@ namespace Blogger.Tests.Integration.Api
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
 
             // Act
-            var response = await _client.DeleteAsync($"/api/articles/does-not-exist/comments/1");
+            var response = await _client.DeleteAsync("/api/articles/does-not-exist/comments/1");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
@@ -306,14 +306,14 @@ namespace Blogger.Tests.Integration.Api
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
-            
+
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/999");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
-        
+
         [TestCase]
         public async Task DeleteComment_SignedInUserDidNotCreateTheComment_ReturnsUnauthorized()
         {
@@ -321,7 +321,7 @@ namespace Blogger.Tests.Integration.Api
             var seededUsers = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, seededUsers[0].Id, 1);
-            
+
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/{article.Comments[0].Id}");
 
@@ -336,10 +336,10 @@ namespace Blogger.Tests.Integration.Api
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
             var commentId = article.Comments[0].Id;
-            
+
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/{commentId}");
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
@@ -348,23 +348,89 @@ namespace Blogger.Tests.Integration.Api
         public async Task Favorite_NotSignedIn_ReturnsUnauthorized()
         {
             // Act
-            var response = await _client.PostAsync($"/api/articles/article-name/favorite", null);
+            var response = await _client.PostAsync("/api/articles/article-name/favorite", null);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-        
+
         [TestCase]
         public async Task Favorite_ArticleDoesNotExist_ReturnsNotFound()
         {
             // Arrange 
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            
+
             // Act
             var response = await _client.PostAsync("/api/articles/does-not-exist/favorite", null);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task Favorite_ArticleExistsAndUserSignedIn_FavoritesArticle()
+        {
+            // Arrange
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
+            var article = seed[0];
+
+            // Act
+            var response = await _client.PostAsync($"/api/articles/{article.Slug}/favorite", null);
+
+            // Assert
+            using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(dbContext.Favorites.Count(), Is.EqualTo(1));
+            }
+        }
+
+        [TestCase]
+        public async Task RemoveFavorite_NotSignedIn_ReturnsUnauthorized()
+        {
+            // Act
+            var response = await _client.DeleteAsync("/api/articles/article-name/favorite");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [TestCase]
+        public async Task RemoveFavorite_ArticleDoesNotExist_ReturnsNotFound()
+        {
+            // Arrange 
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+
+            // Act
+            var response = await _client.DeleteAsync("/api/articles/does-not-exist/favorite");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+
+        [TestCase]
+        public async Task RemoveFavorite_FavoritedArticle_RemovesFavorite()
+        {
+            // Arrange
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
+            var article = seed[0];
+
+            // Act
+            await _client.PostAsync($"/api/articles/{article.Slug}/favorite", null);
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/favorite");
+
+            // Assert
+            using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(dbContext.Favorites.Count(), Is.EqualTo(0));
+            }
         }
     }
 }

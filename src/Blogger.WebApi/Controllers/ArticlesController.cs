@@ -23,14 +23,16 @@ namespace Blogger.WebApi.Controllers
         private readonly IArticleRepository _articleRepository;
         private readonly ICommentRepository _commentRepository;
         private readonly IUserResolverService _userResolverService;
+        private readonly IFavoriteRepository _favoriteRepository;
 
-        public ArticlesController(IMapper mapper, IRepository repository, IArticleRepository articleRepository, ICommentRepository commentRepository, IUserResolverService userResolverService)
+        public ArticlesController(IMapper mapper, IRepository repository, IArticleRepository articleRepository, ICommentRepository commentRepository, IUserResolverService userResolverService, IFavoriteRepository favoriteRepository)
         {
             _mapper = mapper;
             _repository = repository;
             _articleRepository = articleRepository;
             _commentRepository = commentRepository;
             _userResolverService = userResolverService;
+            _favoriteRepository = favoriteRepository;
         }
         
         [HttpPost]
@@ -169,8 +171,46 @@ namespace Blogger.WebApi.Controllers
             {
                 return NotFound();
             }
+
+            if (!article.Favorited)
+            {
+                var favorite = new ArticleFavorite
+                {
+                    ArticleId = article.Id,
+                    ObserverId = _userResolverService.GetUserId()
+                };
+                
+                await _repository.AddAsync(favorite);
+                
+                article.Favorited = true;
+            }
+
+            var result = _mapper.Map<ArticleResource>(article);
             
-            return Ok();
+            return Ok(result);
+        }
+        
+        [HttpDelete("{slug}/favorite")]
+        [Authorize]
+        public async Task<IActionResult> DeleteFavorite(string slug)
+        {
+            var article = await _articleRepository.GetBySlugAsync(slug);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            if (article.Favorited)
+            {
+                await _favoriteRepository.RemoveAsync(article.Id, _userResolverService.GetUserId());
+                
+                article.Favorited = false;
+            }
+
+            var result = _mapper.Map<ArticleResource>(article);
+            
+            return Ok(result);
         }
     }
 }

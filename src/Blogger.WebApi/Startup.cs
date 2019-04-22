@@ -37,6 +37,7 @@ namespace Blogger.WebApi
             services.AddTransient<IRepository, Repository>();
             services.AddTransient<IProfileRepository, ProfileRepository>();
             services.AddTransient<IFollowerRepository, FollowerRepository>();
+            services.AddTransient<IFavoriteRepository, FavoriteRepository>();
             services.AddTransient<IArticleRepository, ArticleRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
         }

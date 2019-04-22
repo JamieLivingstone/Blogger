@@ -11,7 +11,7 @@ using Bogus;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Blogger.Tests.Integration
+namespace Blogger.Tests
 {
     public static class SeedData
     {
