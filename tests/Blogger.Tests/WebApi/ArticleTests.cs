@@ -157,7 +157,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task DeleteArticleBySlug_ArticleExistsAndUserIsTheAuthor_DeletesArticleAndReturnsOk()
+        public async Task DeleteArticleBySlug_ArticleExistsAndUserIsTheAuthor_DeletesArticle()
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
@@ -180,11 +180,10 @@ namespace Blogger.Tests.WebApi
         public async Task AddCommentToArticle_NotSignedIn_ReturnsUnauthorized()
         {
             // Arrange
-            var comment = new SaveCommentResource();
             var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", comment);
+            var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", new SaveCommentResource());
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
@@ -206,7 +205,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task AddCommentToArticle_ArticleExists_AddsCommentAndReturnsComment()
+        public async Task AddCommentToArticle_ArticleExists_AddsComment()
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);

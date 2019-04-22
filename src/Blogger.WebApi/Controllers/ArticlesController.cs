@@ -94,14 +94,13 @@ namespace Blogger.WebApi.Controllers
         public async Task<IActionResult> DeleteArticleBySlug(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
-            var signedInUserId = _userResolverService.GetUserId();
 
             if (article == null)
             {
                 return NotFound();
             }
 
-            if (article.Author.Id != signedInUserId)
+            if (article.Author.Id != _userResolverService.GetUserId())
             {
                 return Unauthorized("You do not have permissions to delete this article!");
             }
