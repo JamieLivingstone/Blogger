@@ -148,5 +148,24 @@ namespace Blogger.Tests
             // Return seeded article
             return article;
         }
+
+        public async static Task<List<Tag>> SeedTagsAsync(CustomWebApplicationFactory factory)
+        {
+            var tags = new List<Tag> {
+                new Tag("gaming"),
+                new Tag("music"),
+                new Tag("tech"),
+                new Tag("news")
+            };
+
+            using (var scope = factory.Server.Host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await dbContext.AddRangeAsync(tags);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return tags;
+        }
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Blogger.Core.Entities;
 using Blogger.Core.Interfaces;
@@ -28,6 +30,14 @@ namespace Blogger.Infrastructure.Repositories
             }
 
             return tag;
+        }
+
+        public async Task<List<Tag>> GetTagsAsync()
+        {
+            return await _dbContext.Tags
+                .OrderBy(tag => tag.Id)
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }
