@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Blogger.WebApi.Resources.Profile;
 
 namespace Blogger.WebApi.Resources.Article
@@ -18,5 +19,7 @@ namespace Blogger.WebApi.Resources.Article
         public DateTime UpdatedAt { get; set; }
 
         public ProfileResource Author { get; set; }
+
+        public List<string> TagList { get; set; }
     }
 }

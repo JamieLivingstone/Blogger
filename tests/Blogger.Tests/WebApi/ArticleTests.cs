@@ -71,7 +71,6 @@ namespace Blogger.Tests.WebApi
             var responseObject = JsonConvert.DeserializeObject<ArticleResource>(responseString);
 
             // Assert
-
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -81,7 +80,11 @@ namespace Blogger.Tests.WebApi
                 Assert.That(responseObject.Description, Is.EqualTo(article.Description));
                 Assert.That(responseObject.Body, Is.EqualTo(article.Body));
                 Assert.That(responseObject.Author.UserName, Is.EqualTo(signedInUser.UserName));
+                CollectionAssert.AreEquivalent(responseObject.TagList.ToList(), new List<string> { "gaming", "music" });
+
                 Assert.That(dbContext.Articles.Count(), Is.EqualTo(1));
+                Assert.That(dbContext.Tags.Count(), Is.EqualTo(2));
+                Assert.That(dbContext.ArticleTags.Count(), Is.EqualTo(2));
             }
         }
 
@@ -113,6 +116,7 @@ namespace Blogger.Tests.WebApi
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.Slug, Is.EqualTo(article.Slug));
             Assert.That(responseObject.Body, Is.EqualTo(article.Body));
+            Assert.That(responseObject.TagList.Count(), Is.EqualTo(article.Tags.Count()));
         }
 
         [TestCase]

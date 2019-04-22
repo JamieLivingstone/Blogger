@@ -4,13 +4,13 @@ namespace Blogger.Core.Entities
 {
     public class Tag
     {
-        public string TagId { get; set; }
+        public string Id { get; set; }
 
         public List<ArticleTag> ArticleTags { get; set; }
 
-        public Tag(string tagId)
+        public Tag(string id)
         {
-            TagId = tagId;
+            Id = id;
         }
     }
 }

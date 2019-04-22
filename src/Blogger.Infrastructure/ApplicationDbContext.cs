@@ -58,9 +58,9 @@ namespace Blogger.Infrastructure
             // Tags
             modelBuilder.Entity<ArticleTag>(builder =>
             {
-                //                builder.HasOne(articleTag => articleTag.Article)
-                //                    .WithMany(article => article.Tags)
-                //                    .HasForeignKey(articleTag => articleTag.ArticleId);
+                builder.HasOne(articleTag => articleTag.Article)
+                    .WithMany(article => article.Tags)
+                    .HasForeignKey(articleTag => articleTag.ArticleId);
 
                 builder.HasOne(articleTag => articleTag.Tag)
                     .WithMany(tag => tag.ArticleTags)

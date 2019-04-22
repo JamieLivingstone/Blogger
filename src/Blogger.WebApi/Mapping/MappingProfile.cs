@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using AutoMapper;
 using Blogger.Core.Entities;
@@ -20,6 +21,9 @@ namespace Blogger.WebApi.Mapping
 
             CreateMap<SaveArticleResource, Article>()
                 .ForMember(a => a.Slug, opt => opt.MapFrom(ar => ar.Title.GenerateSlug()));
+
+            CreateMap<Article, ArticleResource>()
+                .ForMember(ar => ar.TagList, opt => opt.MapFrom(a => a.Tags.Select(t => t.TagId)));
         }
     }
 }

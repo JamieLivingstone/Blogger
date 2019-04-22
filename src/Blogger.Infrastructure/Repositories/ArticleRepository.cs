@@ -22,6 +22,7 @@ namespace Blogger.Infrastructure.Repositories
             var article = await _dbContext.Articles
                 .Where(a => a.Slug == slug)
                 .Include(a => a.Author)
+                .Include(a => a.Tags)
                 .FirstOrDefaultAsync();
 
             if (article == null)

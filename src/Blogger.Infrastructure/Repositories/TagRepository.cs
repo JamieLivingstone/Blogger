@@ -14,11 +14,11 @@ namespace Blogger.Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<Tag> GetOrCreate(string tagName)
+        public async Task<Tag> GetOrCreateAsync(string tagName)
         {
             tagName = tagName.ToLower();
 
-            var tag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.TagId == tagName);
+            var tag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.Id == tagName);
 
             if (tag == null)
             {

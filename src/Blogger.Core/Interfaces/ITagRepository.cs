@@ -5,6 +5,6 @@ namespace Blogger.Core.Interfaces
 {
     public interface ITagRepository
     {
-        Task<Tag> GetOrCreate(string tagName);
+        Task<Tag> GetOrCreateAsync(string tagName);
     }
 }

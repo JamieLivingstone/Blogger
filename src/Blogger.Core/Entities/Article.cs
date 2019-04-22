@@ -26,7 +26,7 @@ namespace Blogger.Core.Entities
 
         public List<ArticleFavorite> Favorites { get; set; }
 
-        //        public List<ArticleTag> Tags { get; set; }
+        public List<ArticleTag> Tags { get; set; }
 
         [NotMapped]
         public bool Favorited { get; set; }

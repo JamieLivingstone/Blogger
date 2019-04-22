@@ -51,6 +51,22 @@ namespace Blogger.WebApi.Controllers
 
             await _repository.AddAsync(article);
 
+            // Add tags to article
+            var tags = saveArticleResource.TagList.Select(t => t.ToLower()).Distinct();
+
+            foreach (var name in tags)
+            {
+                var tag = await _tagRepository.GetOrCreateAsync(name);
+
+                var articleTag = new ArticleTag
+                {
+                    ArticleId = article.Id,
+                    TagId = tag.Id
+                };
+
+                await _repository.AddAsync(articleTag);
+            }
+
             // Retrieve newly created article
             var entity = await _articleRepository.GetBySlugAsync(article.Slug);
             var result = _mapper.Map<ArticleResource>(entity);
