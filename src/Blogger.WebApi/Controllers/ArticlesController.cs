@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -24,8 +25,9 @@ namespace Blogger.WebApi.Controllers
         private readonly ICommentRepository _commentRepository;
         private readonly IUserResolverService _userResolverService;
         private readonly IFavoriteRepository _favoriteRepository;
+        private readonly ITagRepository _tagRepository;
 
-        public ArticlesController(IMapper mapper, IRepository repository, IArticleRepository articleRepository, ICommentRepository commentRepository, IUserResolverService userResolverService, IFavoriteRepository favoriteRepository)
+        public ArticlesController(IMapper mapper, IRepository repository, IArticleRepository articleRepository, ICommentRepository commentRepository, IUserResolverService userResolverService, IFavoriteRepository favoriteRepository, ITagRepository tagRepository)
         {
             _mapper = mapper;
             _repository = repository;
@@ -33,24 +35,26 @@ namespace Blogger.WebApi.Controllers
             _commentRepository = commentRepository;
             _userResolverService = userResolverService;
             _favoriteRepository = favoriteRepository;
+            _tagRepository = tagRepository;
         }
-        
+
         [HttpPost]
         [Authorize]
         [ValidateModel]
         public async Task<IActionResult> CreateArticle([FromBody] SaveArticleResource saveArticleResource)
         {
-            var now = DateTime.Now;
-            
+            // Create article
             var article = _mapper.Map<Article>(saveArticleResource);
-            article.CreatedAt = now;
-            article.UpdatedAt = now;
-            article.Author = await _userResolverService.GetUserAsync();
+            article.CreatedAt = DateTime.Now;
+            article.UpdatedAt = DateTime.Now;
+            article.AuthorId = _userResolverService.GetUserId();
 
             await _repository.AddAsync(article);
 
-            var result = _mapper.Map<ArticleResource>(article);
-           
+            // Retrieve newly created article
+            var entity = await _articleRepository.GetBySlugAsync(article.Slug);
+            var result = _mapper.Map<ArticleResource>(entity);
+
             return Created($"api/articles/{article.Id}", result);
         }
 
@@ -68,19 +72,20 @@ namespace Blogger.WebApi.Controllers
 
             return Ok(result);
         }
-        
+
         [HttpDelete("{slug}")]
         [Authorize]
         public async Task<IActionResult> DeleteArticleBySlug(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
+            var signedInUserId = _userResolverService.GetUserId();
 
             if (article == null)
             {
                 return NotFound();
             }
 
-            if (article.Author.Id != _userResolverService.GetUserId())
+            if (article.Author.Id != signedInUserId)
             {
                 return Unauthorized("You do not have permissions to delete this article!");
             }
@@ -116,7 +121,7 @@ namespace Blogger.WebApi.Controllers
             await _repository.AddAsync(comment);
 
             var result = _mapper.Map<CommentResource>(comment);
-            
+
             return Created($"/api/articles/{article.Slug}/comments/{comment.Id}", result);
         }
 
@@ -133,7 +138,7 @@ namespace Blogger.WebApi.Controllers
             var comments = await _commentRepository.GetAllByArticleIdAsync(article.Id);
 
             var result = _mapper.Map<IList<CommentResource>>(comments);
-            
+
             return Ok(result);
         }
 
@@ -153,7 +158,7 @@ namespace Blogger.WebApi.Controllers
             {
                 return Unauthorized();
             }
-            
+
             await _repository.DeleteAsync(comment);
 
             var result = _mapper.Map<CommentResource>(comment);
@@ -179,17 +184,17 @@ namespace Blogger.WebApi.Controllers
                     ArticleId = article.Id,
                     ObserverId = _userResolverService.GetUserId()
                 };
-                
+
                 await _repository.AddAsync(favorite);
-                
+
                 article.Favorited = true;
             }
 
             var result = _mapper.Map<ArticleResource>(article);
-            
+
             return Ok(result);
         }
-        
+
         [HttpDelete("{slug}/favorite")]
         [Authorize]
         public async Task<IActionResult> DeleteFavorite(string slug)
@@ -204,12 +209,12 @@ namespace Blogger.WebApi.Controllers
             if (article.Favorited)
             {
                 await _favoriteRepository.RemoveAsync(article.Id, _userResolverService.GetUserId());
-                
+
                 article.Favorited = false;
             }
 
             var result = _mapper.Map<ArticleResource>(article);
-            
+
             return Ok(result);
         }
     }

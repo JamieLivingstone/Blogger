@@ -24,17 +24,24 @@ namespace Blogger.Infrastructure.Repositories
                 .Include(a => a.Author)
                 .FirstOrDefaultAsync();
 
+            if (article == null)
+            {
+                return null;
+            }
+
             var signedInUserId = _userResolverService.GetUserId();
 
-            if (article != null && signedInUserId != null)
+            if (signedInUserId != null)
             {
-                var favorited = await _dbContext.Favorites.FirstOrDefaultAsync(f =>f.ArticleId == article.Id && f.ObserverId == signedInUserId);
+                var favorited = await _dbContext.Favorites.FirstOrDefaultAsync(f => f.ArticleId == article.Id && f.ObserverId == signedInUserId);
 
                 if (favorited != null)
                 {
-                    article.Favorited = true;                    
+                    article.Favorited = true;
                 }
             }
+
+            article.FavoritesCount = _dbContext.Favorites.Count(f => f.ArticleId == article.Id);
 
             return article;
         }

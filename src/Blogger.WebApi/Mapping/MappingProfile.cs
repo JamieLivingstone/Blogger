@@ -13,9 +13,9 @@ namespace Blogger.WebApi.Mapping
         public MappingProfile()
         {
             CreateMap<SaveUserResource, ApplicationUser>(MemberList.None);
-            
+
             CreateMap<ApplicationUser, UserResource>(MemberList.None);
-            
+
             CreateMap<ApplicationUser, ProfileResource>(MemberList.None);
 
             CreateMap<SaveArticleResource, Article>()

@@ -12,7 +12,7 @@ namespace Blogger.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        
+
         public async Task RemoveAsync(int articleId, string observerId)
         {
             var favorite = await _dbContext.Favorites.FirstAsync(f => f.ArticleId == articleId && f.ObserverId == observerId);

@@ -30,7 +30,7 @@ namespace Blogger.WebApi.Controllers
             _jwtTokenGenerator = jwtTokenGenerator;
             _userResolverService = userResolverService;
         }
-        
+
         [HttpPost]
         [ValidateModel]
         public async Task<IActionResult> Register([FromBody] SaveUserResource saveUserResource)
@@ -56,26 +56,26 @@ namespace Blogger.WebApi.Controllers
             if (result.Succeeded)
             {
                 var user = await _userManager.Users.FirstAsync(u => u.UserName == loginUserResource.UserName);
-                
+
                 return Ok(FormatUser(user));
             }
 
             return Unauthorized();
         }
-        
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetSignedInUser()
         {
             var user = await _userResolverService.GetUserAsync();
-            
+
             return Ok(FormatUser(user));
         }
 
         private UserResource FormatUser(ApplicationUser applicationUser)
         {
             var user = _mapper.Map<UserResource>(applicationUser);
-            
+
             user.Token = _jwtTokenGenerator.CreateToken(applicationUser);
 
             return user;

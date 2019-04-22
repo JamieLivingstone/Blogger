@@ -15,7 +15,7 @@ namespace Blogger.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        
+
         public async Task<List<Comment>> GetAllByArticleIdAsync(int articleId)
         {
             return await _dbContext.Comments

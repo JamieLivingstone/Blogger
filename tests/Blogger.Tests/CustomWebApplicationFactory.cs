@@ -24,10 +24,10 @@ namespace Blogger.Tests
                     options.UseInMemoryDatabase("InMemoryDbForTesting");
                     options.UseInternalServiceProvider(serviceProvider);
                 });
-                
+
                 // Build the service provider.
                 services.BuildServiceProvider();
             });
-        }  
+        }
     }
 }

@@ -1,77 +1,73 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Blogger.Infrastructure.Migrations
-{
-    public partial class UpdateAuthorEntityIdToStringFromInteger : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropForeignKey(
+namespace Blogger.Infrastructure.Migrations {
+    public partial class UpdateAuthorEntityIdToStringFromInteger : Migration {
+        protected override void Up (MigrationBuilder migrationBuilder) {
+            migrationBuilder.DropForeignKey (
                 name: "FK_Comments_AspNetUsers_AuthorId1",
                 table: "Comments");
 
-            migrationBuilder.DropIndex(
+            migrationBuilder.DropIndex (
                 name: "IX_Comments_AuthorId1",
                 table: "Comments");
 
-            migrationBuilder.DropColumn(
+            migrationBuilder.DropColumn (
                 name: "AuthorId1",
                 table: "Comments");
 
-            migrationBuilder.AlterColumn<string>(
+            migrationBuilder.AlterColumn<string> (
                 name: "AuthorId",
                 table: "Comments",
-                nullable: true,
-                oldClrType: typeof(int));
+                nullable : true,
+                oldClrType : typeof (int));
 
-            migrationBuilder.CreateIndex(
+            migrationBuilder.CreateIndex (
                 name: "IX_Comments_AuthorId",
                 table: "Comments",
                 column: "AuthorId");
 
-            migrationBuilder.AddForeignKey(
+            migrationBuilder.AddForeignKey (
                 name: "FK_Comments_AspNetUsers_AuthorId",
                 table: "Comments",
                 column: "AuthorId",
                 principalTable: "AspNetUsers",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete : ReferentialAction.Restrict);
         }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropForeignKey(
+        protected override void Down (MigrationBuilder migrationBuilder) {
+            migrationBuilder.DropForeignKey (
                 name: "FK_Comments_AspNetUsers_AuthorId",
                 table: "Comments");
 
-            migrationBuilder.DropIndex(
+            migrationBuilder.DropIndex (
                 name: "IX_Comments_AuthorId",
                 table: "Comments");
 
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.AlterColumn<int> (
                 name: "AuthorId",
                 table: "Comments",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldNullable: true);
+                nullable : false,
+                oldClrType : typeof (string),
+                oldNullable : true);
 
-            migrationBuilder.AddColumn<string>(
+            migrationBuilder.AddColumn<string> (
                 name: "AuthorId1",
                 table: "Comments",
-                nullable: true);
+                nullable : true);
 
-            migrationBuilder.CreateIndex(
+            migrationBuilder.CreateIndex (
                 name: "IX_Comments_AuthorId1",
                 table: "Comments",
                 column: "AuthorId1");
 
-            migrationBuilder.AddForeignKey(
+            migrationBuilder.AddForeignKey (
                 name: "FK_Comments_AspNetUsers_AuthorId1",
                 table: "Comments",
                 column: "AuthorId1",
                 principalTable: "AspNetUsers",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete : ReferentialAction.Restrict);
         }
     }
 }

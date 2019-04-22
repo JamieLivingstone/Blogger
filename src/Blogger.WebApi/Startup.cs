@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Blogger.Core.Interfaces;
 using Blogger.Core.Services;
 using Blogger.Infrastructure;
@@ -15,7 +15,7 @@ namespace Blogger.WebApi
     public class Startup
     {
         private IConfiguration Configuration { get; }
-        
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -29,8 +29,9 @@ namespace Blogger.WebApi
             {
                 options.UseNpgsql(Configuration.GetConnectionString("Database"));
             });
-            
+
             services.AddJwt(Configuration);
+
             services.AddAutoMapper();
             services.AddTransient<IUserResolverService, UserResolverService>();
             services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -40,6 +41,7 @@ namespace Blogger.WebApi
             services.AddTransient<IFavoriteRepository, FavoriteRepository>();
             services.AddTransient<IArticleRepository, ArticleRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
+            services.AddTransient<ITagRepository, TagRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

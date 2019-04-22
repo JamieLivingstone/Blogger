@@ -30,7 +30,7 @@ namespace Blogger.Tests
                     Image = faker.Person.Avatar
                 };
             }
-            
+
             using (var scope = factory.Server.Host.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -51,12 +51,12 @@ namespace Blogger.Tests
                 UserName = "test",
                 Email = "test@mail.com"
             };
-            
+
             using (var scope = factory.Server.Host.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var jwtTokenGenerator = scope.ServiceProvider.GetRequiredService<IJwtTokenGenerator>();
-                
+
                 await userManager.CreateAsync(user, "SomeCompl3xP455word@123");
 
                 var token = jwtTokenGenerator.CreateToken(user);
@@ -67,66 +67,61 @@ namespace Blogger.Tests
             return user;
         }
 
-        public static async Task<List<Article>> SeedArticlesAsync(CustomWebApplicationFactory factory,  int articlesToCreate = 5)
+        public static async Task<Article> SeedArticleAsync(CustomWebApplicationFactory factory, ApplicationUser author = null)
         {
-            var faker = new Faker();
-            var articles = new Article[articlesToCreate];
-            var users = await SeedUsersAsync(factory, 3);
-
-            for (var i = 0; i < articles.Length; i++)
+            if (author == null)
             {
-                var title = faker.Lorem.Sentence(4);
-                
-                articles[i] = new Article
-                {
-                    Slug = title.GenerateSlug(),
-                    Title = title,
-                    Description = faker.Lorem.Sentence(),
-                    Body = faker.Lorem.Sentences(),
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    Author = users[2]
-                };
+                var seededUsers = await SeedData.SeedUsersAsync(factory, 1);
+                author = seededUsers[0];
             }
-            
+
+            // Seed article
+            var faker = new Faker();
+            var title = faker.Lorem.Sentence();
+
+            var article = new Article
+            {
+                Slug = title.GenerateSlug(),
+                Title = title,
+                Description = faker.Lorem.Sentence(),
+                Body = faker.Lorem.Sentences(),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                AuthorId = author.Id
+            };
+
             using (var scope = factory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await dbContext.Articles.AddRangeAsync(articles);
+                await dbContext.AddAsync(article);
                 await dbContext.SaveChangesAsync();
             }
 
-            return articles.ToList();
-        }
+            // Seed comments
+            var comments = new List<Comment>();
 
-        public static async Task<Article> SeedArticleWithCommentsAsync(CustomWebApplicationFactory factory, string authorId, int commentsToCreate)
-        {
-            var faker = new Faker();
-            var seededArticles = await SeedArticlesAsync(factory, 1);
-            var article = seededArticles[0];
-            var comments = new Comment[commentsToCreate];
-
-            for (var i = 0; i < comments.Length; i++)
+            for (var i = 0; i < 10; i++)
             {
-                comments[i] = new Comment
+                comments.Add(new Comment
                 {
                     Body = faker.Lorem.Sentence(),
                     ArticleId = article.Id,
-                    AuthorId = authorId,
+                    AuthorId = author.Id,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
-                };
+                });
             }
-            
+
             using (var scope = factory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await dbContext.Comments.AddRangeAsync(comments);
+                await dbContext.AddRangeAsync(comments);
                 await dbContext.SaveChangesAsync();
-            }
-            
-            article.Comments = comments.ToList();
 
+                article.Comments = comments.ToList();
+            }
+
+            // Return seeded article
             return article;
         }
     }

@@ -61,7 +61,8 @@ namespace Blogger.Tests.WebApi
             {
                 Title = _faker.Lorem.Word(),
                 Description = _faker.Lorem.Sentence(),
-                Body = _faker.Lorem.Sentences()
+                Body = _faker.Lorem.Sentences(),
+                TagList = new List<string> { "gaming", "gaming", "music" } // Duplicate category (to assert tag logic handles duplicates)
             };
 
             // Act
@@ -82,7 +83,6 @@ namespace Blogger.Tests.WebApi
                 Assert.That(responseObject.Author.UserName, Is.EqualTo(signedInUser.UserName));
                 Assert.That(dbContext.Articles.Count(), Is.EqualTo(1));
             }
-
         }
 
         [TestCase]
@@ -102,19 +102,17 @@ namespace Blogger.Tests.WebApi
         public async Task GetArticleBySlug_ArticleExists_ReturnsArticle()
         {
             // Arrange
-            var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
-            var articleToRetrieve = articles[0];
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
-            var response = await _client.GetAsync($"/api/articles/{articleToRetrieve.Slug}");
+            var response = await _client.GetAsync($"/api/articles/{article.Slug}");
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<ArticleResource>(responseString);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(responseObject.Slug, Is.EqualTo(articleToRetrieve.Slug));
-            Assert.That(responseObject.Body, Is.EqualTo(articleToRetrieve.Body));
-            Assert.That(responseObject.Author.UserName, Is.EqualTo(articleToRetrieve.Author.UserName));
+            Assert.That(responseObject.Slug, Is.EqualTo(article.Slug));
+            Assert.That(responseObject.Body, Is.EqualTo(article.Body));
         }
 
         [TestCase]
@@ -145,11 +143,10 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 4);
-            var articleToDelete = seed[3];
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
-            var response = await _client.DeleteAsync($"/api/articles/{articleToDelete.Slug}");
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
@@ -159,21 +156,11 @@ namespace Blogger.Tests.WebApi
         public async Task DeleteArticleBySlug_ArticleExistsAndUserIsTheAuthor_DeletesArticleAndReturnsOk()
         {
             // Arrange
-            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-
-            var article = new SaveArticleResource
-            {
-                Title = _faker.Lorem.Word(),
-                Description = _faker.Lorem.Sentence(),
-                Body = _faker.Lorem.Sentences()
-            };
+            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, signedInUser);
 
             // Act
-            var createResponse = await _client.PostAsJsonAsync("/api/articles", article);
-            var createSting = await createResponse.Content.ReadAsStringAsync();
-            var createResultObject = JsonConvert.DeserializeObject<ArticleResource>(createSting);
-
-            var response = await _client.DeleteAsync($"/api/articles/{createResultObject.Slug}");
+            var response = await _client.DeleteAsync($"/api/articles/{article.Slug}");
 
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
@@ -190,8 +177,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var comment = new SaveCommentResource();
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
-            var article = seed[0];
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
             var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", comment);
@@ -205,7 +191,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var comment = new SaveCommentResource {Body = "Test comment!"};
+            var comment = new SaveCommentResource { Body = "Test comment!" };
             const string slug = "i-do-not-exist";
 
             // Act
@@ -220,10 +206,8 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-
-            var comment = new SaveCommentResource {Body = "Test comment!"};
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
-            var article = seed[0];
+            var comment = new SaveCommentResource { Body = "Test comment!" };
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, signedInUser);
 
             // Act
             var response = await _client.PostAsJsonAsync($"/api/articles/{article.Slug}/comments", comment);
@@ -238,7 +222,7 @@ namespace Blogger.Tests.WebApi
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
                 Assert.That(responseObject.Body, Is.EqualTo(comment.Body));
                 Assert.That(responseObject.Author.UserName, Is.EqualTo(signedInUser.UserName));
-                Assert.That(dbContext.Comments.Count(), Is.EqualTo(1));
+                Assert.That(dbContext.Comments.Count(), Is.EqualTo(article.Comments.Count() + 1));
             }
         }
 
@@ -260,7 +244,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, signedInUser);
 
             // Act
             var response = await _client.GetAsync($"/api/articles/{article.Slug}/comments");
@@ -305,7 +289,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, signedInUser);
 
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/999");
@@ -318,9 +302,8 @@ namespace Blogger.Tests.WebApi
         public async Task DeleteComment_SignedInUserDidNotCreateTheComment_ReturnsUnauthorized()
         {
             // Arrange
-            var seededUsers = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, seededUsers[0].Id, 1);
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
             var response = await _client.DeleteAsync($"/api/articles/{article.Slug}/comments/{article.Comments[0].Id}");
@@ -334,7 +317,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var article = await SeedData.SeedArticleWithCommentsAsync(_webApplicationFactory, signedInUser.Id, 5);
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, signedInUser);
             var commentId = article.Comments[0].Id;
 
             // Act
@@ -372,8 +355,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
-            var article = seed[0];
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
             var response = await _client.PostAsync($"/api/articles/{article.Slug}/favorite", null);
@@ -382,7 +364,7 @@ namespace Blogger.Tests.WebApi
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                
+
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(dbContext.Favorites.Count(), Is.EqualTo(1));
             }
@@ -416,8 +398,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            var seed = await SeedData.SeedArticlesAsync(_webApplicationFactory, 1);
-            var article = seed[0];
+            var article = await SeedData.SeedArticleAsync(_webApplicationFactory, null);
 
             // Act
             await _client.PostAsync($"/api/articles/{article.Slug}/favorite", null);

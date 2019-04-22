@@ -26,7 +26,7 @@ namespace Blogger.WebApi.Controllers
             _followerRepository = followerRepository;
             _userResolverService = userResolverService;
         }
-        
+
         [HttpGet("{userName}")]
         public async Task<IActionResult> GetProfileByUsername(string userName)
         {
@@ -36,7 +36,7 @@ namespace Blogger.WebApi.Controllers
             {
                 return NotFound();
             }
-            
+
             return Ok(profile);
         }
 
@@ -61,11 +61,11 @@ namespace Blogger.WebApi.Controllers
                 TargetId = target.Id,
                 ObserverId = _userResolverService.GetUserId()
             };
-            
+
             await _repository.AddAsync(follower);
 
             target.Following = true;
-            
+
             return Ok(target);
         }
 
@@ -74,7 +74,7 @@ namespace Blogger.WebApi.Controllers
         public async Task<IActionResult> UnfollowUser(string userName)
         {
             var target = await _profileRepository.GetByUserNameAsync(userName);
-            
+
             if (target == null)
             {
                 return NotFound();
@@ -99,7 +99,7 @@ namespace Blogger.WebApi.Controllers
             }
 
             var profile = _mapper.Map<ProfileResource>(user);
-            
+
             return profile;
         }
     }

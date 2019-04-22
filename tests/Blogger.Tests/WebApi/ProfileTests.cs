@@ -32,11 +32,11 @@ namespace Blogger.Tests.WebApi
 
             // Act
             var response = await _client.GetAsync($"api/profiles/{userName}");
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
-        
+
         [TestCase]
         public async Task GetProfileByUsername_UserExists_ReturnsProfileResource()
         {
@@ -48,7 +48,7 @@ namespace Blogger.Tests.WebApi
             var response = await _client.GetAsync($"api/profiles/{seededUser.UserName}");
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<ProfileResource>(responseString);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.UserName, Is.EqualTo(seededUser.UserName));
@@ -59,12 +59,12 @@ namespace Blogger.Tests.WebApi
         public async Task FollowUser_UserDoesNotExist_ReturnsNotFound()
         {
             // Arrange
-            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);        
+            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             const string userName = "foo";
 
             // Act
-            var result = await _client.PostAsync($"api/profiles/{userName}/follow",  null);
-            
+            var result = await _client.PostAsync($"api/profiles/{userName}/follow", null);
+
             // Assert
             Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
@@ -76,12 +76,12 @@ namespace Blogger.Tests.WebApi
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             var userToFollow = seed[0];
-            
+
             // Act
-            var response = await _client.PostAsync($"api/profiles/{userToFollow.UserName}/follow",  null);
+            var response = await _client.PostAsync($"api/profiles/{userToFollow.UserName}/follow", null);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<ProfileResource>(responseString);
-            
+
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
@@ -104,17 +104,17 @@ namespace Blogger.Tests.WebApi
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             var target = seed[0];
-            
+
             // Act
             await _client.PostAsync($"api/profiles/{target.UserName}/follow", null);
-            
+
             var response = await _client.DeleteAsync($"api/profiles/{target.UserName}/follow");
-        
+
             // Assert
             using (var scope = _webApplicationFactory.Server.Host.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                
+
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(context.Followers.Count(), Is.EqualTo(0));
             }

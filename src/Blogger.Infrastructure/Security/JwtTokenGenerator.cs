@@ -20,19 +20,18 @@ namespace Blogger.Infrastructure.Security
         public string CreateToken(ApplicationUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            
+
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
-            
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] 
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id)
+                Subject = new ClaimsIdentity(new[] {
+                new Claim (ClaimTypes.NameIdentifier, user.Id)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-            
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);

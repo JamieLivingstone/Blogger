@@ -15,16 +15,16 @@ namespace Blogger.Infrastructure.Repositories
             _dbContext = dbContext;
             _userResolverService = userResolverService;
         }
-        
+
         public async Task<ApplicationUser> GetByUserNameAsync(string userName)
-        {   
+        {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == userName);
 
             if (user == null)
             {
                 return null;
             }
-            
+
             var signedInUserId = _userResolverService.GetUserId();
 
             if (signedInUserId != null && signedInUserId != user.Id)
@@ -36,7 +36,7 @@ namespace Blogger.Infrastructure.Repositories
                     user.Following = true;
                 }
             }
-                
+
             return user;
         }
     }

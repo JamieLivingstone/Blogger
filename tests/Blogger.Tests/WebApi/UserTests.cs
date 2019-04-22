@@ -45,7 +45,7 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var faker = new Faker();
-            
+
             var user = new SaveUserResource
             {
                 UserName = faker.Person.UserName,
@@ -111,12 +111,12 @@ namespace Blogger.Tests.WebApi
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 await userManager.CreateAsync(new ApplicationUser { UserName = login.UserName, Email = "test@mail.com" }, login.Password);
             }
-            
+
             // Act
             var response = await _client.PostAsJsonAsync("/api/users/login", login);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<UserResource>(responseString);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.UserName, Is.EqualTo(login.UserName));
@@ -141,12 +141,12 @@ namespace Blogger.Tests.WebApi
         {
             // Arrange
             var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
-            
+
             // Act
             var response = await _client.GetAsync("/api/users");
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<UserResource>(responseString);
-            
+
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.UserName, Is.EqualTo(signedInUser.UserName));
