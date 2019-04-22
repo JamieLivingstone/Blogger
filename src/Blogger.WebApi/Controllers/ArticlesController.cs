@@ -112,6 +112,15 @@ namespace Blogger.WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("feed")]
+        public async Task<IActionResult> GetFeed([FromQuery] int limit, int offset, string tag, string author, string favorited)
+        {
+            var feed = await _articleRepository.GetFeedAsync(limit, offset, tag, author, favorited);
+            var result = _mapper.Map<List<ArticleResource>>(feed);
+
+            return Ok(feed);
+        }
+
         [HttpPost("{slug}/comments")]
         [Authorize]
         [ValidateModel]

@@ -121,32 +121,20 @@ namespace Blogger.Tests
                 article.Comments = comments.ToList();
             }
 
-            // Seed tags
-            using (var scope = factory.Server.Host.Services.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                var tags = new List<Tag> {
-                    new Tag("foo"),
-                    new Tag("bar")
-                };
-
-                await dbContext.Tags.AddRangeAsync(tags);
-                await dbContext.SaveChangesAsync();
-
-                var articleTags = new List<ArticleTag> {
-                    new ArticleTag { TagId = tags[0].Id, ArticleId = article.Id },
-                    new ArticleTag { TagId = tags[1].Id, ArticleId = article.Id }
-                };
-
-                await dbContext.ArticleTags.AddRangeAsync(articleTags);
-                await dbContext.SaveChangesAsync();
-
-                article.Tags = articleTags;
-            }
-
             // Return seeded article
             return article;
+        }
+
+        public async static Task<List<Article>> SeedArticlesAsync(CustomWebApplicationFactory factory, int articlesToCreate)
+        {
+            var articles = new Article[articlesToCreate];
+
+            for (var i = 0; i < articles.Length; i++)
+            {
+                articles[i] = await SeedData.SeedArticleAsync(factory, null);
+            }
+
+            return articles.ToList();
         }
 
         public async static Task<List<Tag>> SeedTagsAsync(CustomWebApplicationFactory factory)

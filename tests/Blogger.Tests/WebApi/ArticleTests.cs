@@ -87,6 +87,31 @@ namespace Blogger.Tests.WebApi
                 Assert.That(dbContext.ArticleTags.Count(), Is.EqualTo(2));
             }
         }
+        [TestCase]
+        public async Task GetFeed_NoArticles_ReturnsOk()
+        {
+            // Act
+            var result = await _client.GetAsync("/api/articles/feed");
+
+            // Assert
+            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+
+        [TestCase]
+        public async Task GetFeed_ArticlesExist_AppliesLimitAndOffset()
+        {
+            // Arrange
+            var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 5);
+
+            // Act
+            var result = await _client.GetAsync("/api/articles/feed?limit=1&offset=1");
+            var resultString = await result.Content.ReadAsStringAsync();
+            var resultArray = JsonConvert.DeserializeObject<List<ArticleResource>>(resultString);
+
+            // Assert
+            Assert.That(resultArray.Count(), Is.EqualTo(1));
+            Assert.That(resultArray[0].Slug, Is.EqualTo(articles[1].Slug));
+        }
 
         [TestCase]
         public async Task GetArticleBySlug_DoesNotExist_ReturnsNotFound()
@@ -116,7 +141,6 @@ namespace Blogger.Tests.WebApi
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.Slug, Is.EqualTo(article.Slug));
             Assert.That(responseObject.Body, Is.EqualTo(article.Body));
-            Assert.That(responseObject.TagList.Count(), Is.EqualTo(article.Tags.Count()));
         }
 
         [TestCase]
