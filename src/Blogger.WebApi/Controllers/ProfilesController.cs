@@ -13,21 +13,15 @@ namespace Blogger.WebApi.Controllers
     public class ProfilesController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly IUserRepository _userRepository;
+        private readonly IProfileRepository _profileRepository;
         private readonly IRepository _repository;
         private readonly IFollowerRepository _followerRepository;
         private readonly IUserResolverService _userResolverService;
 
-        public ProfilesController(
-            IMapper mapper, 
-            IUserRepository userRepository, 
-            IRepository repository, 
-            IFollowerRepository followerRepository,
-            IUserResolverService userResolverService
-        )
+        public ProfilesController(IMapper mapper, IProfileRepository profileRepository, IRepository repository, IFollowerRepository followerRepository, IUserResolverService userResolverService)
         {
             _mapper = mapper;
-            _userRepository = userRepository;
+            _profileRepository = profileRepository;
             _repository = repository;
             _followerRepository = followerRepository;
             _userResolverService = userResolverService;
@@ -50,7 +44,7 @@ namespace Blogger.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> FollowUser(string userName)
         {
-            var target = await _userRepository.GetByUserNameAsync(userName);
+            var target = await _profileRepository.GetByUserNameAsync(userName);
 
             if (target == null)
             {
@@ -70,32 +64,34 @@ namespace Blogger.WebApi.Controllers
             
             await _repository.AddAsync(follower);
 
-            var result = await GetProfileAsync(userName);
+            target.Following = true;
             
-            return Created("", result);
+            return Ok(target);
         }
 
         [HttpDelete("{userName}/follow")]
         [Authorize]
         public async Task<IActionResult> UnfollowUser(string userName)
         {
-            var target = await _userRepository.GetByUserNameAsync(userName);
+            var target = await _profileRepository.GetByUserNameAsync(userName);
             
             if (target == null)
             {
                 return NotFound();
             }
-            
-            await _followerRepository.RemoveAsync(target.Id, _userResolverService.GetUserId());
 
-            var result = await GetProfileAsync(userName);
+            if (target.Following)
+            {
+                await _followerRepository.RemoveAsync(target.Id, _userResolverService.GetUserId());
+                target.Following = false;
+            }
 
-            return Ok(result);
+            return Ok(target);
         }
 
         private async Task<ProfileResource> GetProfileAsync(string userName)
         {
-            var user = await _userRepository.GetByUserNameAsync(userName);
+            var user = await _profileRepository.GetByUserNameAsync(userName);
 
             if (user == null)
             {
@@ -103,14 +99,7 @@ namespace Blogger.WebApi.Controllers
             }
 
             var profile = _mapper.Map<ProfileResource>(user);
-
-            var userId = _userResolverService.GetUserId();
-
-            if (userId != null)
-            {
-                profile.Following = await _followerRepository.IsFollowing(user.Id, userId);
-            }
-
+            
             return profile;
         }
     }

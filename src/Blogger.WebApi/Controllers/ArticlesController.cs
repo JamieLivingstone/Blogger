@@ -24,13 +24,7 @@ namespace Blogger.WebApi.Controllers
         private readonly ICommentRepository _commentRepository;
         private readonly IUserResolverService _userResolverService;
 
-        public ArticlesController(
-            IMapper mapper, 
-            IRepository repository, 
-            IArticleRepository articleRepository,
-            ICommentRepository commentRepository,
-            IUserResolverService userResolverService
-        )
+        public ArticlesController(IMapper mapper, IRepository repository, IArticleRepository articleRepository, ICommentRepository commentRepository, IUserResolverService userResolverService)
         {
             _mapper = mapper;
             _repository = repository;

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Blogger.Core.Entities;
 using Blogger.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Blogger.Infrastructure.Repositories
 {
@@ -12,11 +11,6 @@ namespace Blogger.Infrastructure.Repositories
         public Repository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-        }
-        
-        public Task<T> GetByIdAsync<T>(int id) where T : BaseEntity
-        {
-            return _dbContext.Set<T>().SingleOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task<T> AddAsync<T>(T entity) where T : BaseEntity

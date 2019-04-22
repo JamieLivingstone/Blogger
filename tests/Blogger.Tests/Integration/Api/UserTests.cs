@@ -150,6 +150,7 @@ namespace Blogger.Tests.Integration.Api
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(responseObject.UserName, Is.EqualTo(signedInUser.UserName));
+            Assert.That(responseObject.Token.Length, Is.GreaterThan(100));
         }
     }
 }

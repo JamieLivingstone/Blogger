@@ -12,13 +12,6 @@ namespace Blogger.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        
-        public async Task<bool> IsFollowing(string targetId, string observerId)
-        {
-            var following = await _dbContext.Followers.FirstOrDefaultAsync(f => f.TargetId == targetId && f.ObserverId == observerId);
-
-            return following != null;
-        }
 
         public async Task RemoveAsync(string targetId, string observerId)
         {

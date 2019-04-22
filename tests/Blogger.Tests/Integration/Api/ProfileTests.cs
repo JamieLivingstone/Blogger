@@ -88,7 +88,7 @@ namespace Blogger.Tests.Integration.Api
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var followerEntity = await dbContext.Followers.FirstOrDefaultAsync();
 
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(responseObject.UserName, Is.EqualTo(userToFollow.UserName));
                 Assert.That(responseObject.Following, Is.EqualTo(true));
                 Assert.That(dbContext.Followers.Count(), Is.EqualTo(1));
@@ -98,7 +98,7 @@ namespace Blogger.Tests.Integration.Api
         }
 
         [TestCase]
-        public async Task UnfollowUser_IsAlreadyFollowing_RemovesFollowAndReturnsProfileResource()
+        public async Task UnfollowUser_IsAlreadyFollowing_RemovesFollowerAndReturnsProfileResource()
         {
             // Arrange
             await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);

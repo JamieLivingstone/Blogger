@@ -22,13 +22,7 @@ namespace Blogger.WebApi.Controllers
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IUserResolverService _userResolverService;
 
-        public UsersController(
-            UserManager<ApplicationUser> userManager, 
-            SignInManager<ApplicationUser> signInManager,
-            IMapper mapper,
-            IJwtTokenGenerator jwtTokenGenerator,
-            IUserResolverService userResolverService
-        )
+        public UsersController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator, IUserResolverService userResolverService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -47,7 +41,7 @@ namespace Blogger.WebApi.Controllers
 
             if (result.Succeeded)
             {
-                return Created($"/api/users/{user.Id}", FormattedUserResponse(user));
+                return Created($"/api/users/{user.Id}", FormatUser(user));
             }
 
             return BadRequest(result.Errors);
@@ -63,7 +57,7 @@ namespace Blogger.WebApi.Controllers
             {
                 var user = await _userManager.Users.FirstAsync(u => u.UserName == loginUserResource.UserName);
                 
-                return Ok(FormattedUserResponse(user));
+                return Ok(FormatUser(user));
             }
 
             return Unauthorized();
@@ -75,10 +69,10 @@ namespace Blogger.WebApi.Controllers
         {
             var user = await _userResolverService.GetUserAsync();
             
-            return Ok(FormattedUserResponse(user));
+            return Ok(FormatUser(user));
         }
 
-        private UserResource FormattedUserResponse(ApplicationUser applicationUser)
+        private UserResource FormatUser(ApplicationUser applicationUser)
         {
             var user = _mapper.Map<UserResource>(applicationUser);
             
