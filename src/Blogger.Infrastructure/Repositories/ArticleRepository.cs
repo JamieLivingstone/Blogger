@@ -27,29 +27,15 @@ namespace Blogger.Infrastructure.Repositories
                 .Include(a => a.Tags)
                 .FirstOrDefaultAsync();
 
-            if (article == null)
+            if (article != null)
             {
-                return null;
+                article = PopulateProperties(article, _userResolverService.GetUserId());
             }
-
-            var signedInUserId = _userResolverService.GetUserId();
-
-            if (signedInUserId != null)
-            {
-                var favorited = await _dbContext.Favorites.FirstOrDefaultAsync(f => f.ArticleId == article.Id && f.ObserverId == signedInUserId);
-
-                if (favorited != null)
-                {
-                    article.Favorited = true;
-                }
-            }
-
-            article.FavoritesCount = _dbContext.Favorites.Count(f => f.ArticleId == article.Id);
 
             return article;
         }
 
-        public async Task<List<Article>> GetFeedAsync(int? limit, int? offset, string tag, string author, string favorited)
+        public async Task<IEnumerable<Article>> GetFeedAsync(int? limit, int? offset, string tag, string author, string favorited)
         {
             IQueryable<Article> queryable = _dbContext.Articles
                 .Include(a => a.Author)
@@ -75,12 +61,32 @@ namespace Blogger.Infrastructure.Repositories
                 queryable = queryable.Where(a => a.Favorites.Select(f => f.ObserverId).Contains(favorited));
             }
 
-            return await queryable
+            var signedInUserId = _userResolverService.GetUserId();
+
+            return queryable
                 .OrderByDescending(a => a.CreatedAt)
                 .Skip(offset ?? 0)
                 .Take(limit ?? 20)
                 .AsNoTracking()
-                .ToListAsync();
+                .ToList()
+                .Select(article => PopulateProperties(article, signedInUserId));
+        }
+
+        private Article PopulateProperties(Article article, string signedInUserId)
+        {
+            if (signedInUserId != null)
+            {
+                var favorited = _dbContext.Favorites.FirstOrDefault(f => f.ArticleId == article.Id && f.ObserverId == signedInUserId);
+
+                if (favorited != null)
+                {
+                    article.Favorited = true;
+                }
+            }
+
+            article.FavoritesCount = _dbContext.Favorites.Count(f => f.ArticleId == article.Id);
+
+            return article;
         }
     }
 }

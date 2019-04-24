@@ -104,13 +104,13 @@ namespace Blogger.Tests.WebApi
             var articles = await SeedData.SeedArticlesAsync(_webApplicationFactory, 5);
 
             // Act
-            var result = await _client.GetAsync("/api/articles/feed?limit=1&offset=1");
+            var result = await _client.GetAsync("/api/articles/feed?limit=2&offset=0");
             var resultString = await result.Content.ReadAsStringAsync();
             var resultArray = JsonConvert.DeserializeObject<List<ArticleResource>>(resultString);
 
             // Assert
-            Assert.That(resultArray.Count(), Is.EqualTo(1));
-            Assert.That(resultArray[0].Slug, Is.EqualTo(articles[1].Slug));
+            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(resultArray.Count(), Is.EqualTo(2));
         }
 
         [TestCase]

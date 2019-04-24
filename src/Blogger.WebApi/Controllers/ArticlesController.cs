@@ -118,7 +118,7 @@ namespace Blogger.WebApi.Controllers
             var feed = await _articleRepository.GetFeedAsync(limit, offset, tag, author, favorited);
             var result = _mapper.Map<List<ArticleResource>>(feed);
 
-            return Ok(feed);
+            return Ok(result);
         }
 
         [HttpPost("{slug}/comments")]
