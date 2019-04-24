@@ -75,7 +75,7 @@ namespace Blogger.WebApi.Controllers
         }
 
         [HttpGet("{slug}")]
-        public async Task<IActionResult> GetArticleBySlug(string slug)
+        public async Task<IActionResult> GetArticle(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
 
@@ -91,7 +91,7 @@ namespace Blogger.WebApi.Controllers
 
         [HttpDelete("{slug}")]
         [Authorize]
-        public async Task<IActionResult> DeleteArticleBySlug(string slug)
+        public async Task<IActionResult> DeleteArticle(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
 
@@ -124,7 +124,7 @@ namespace Blogger.WebApi.Controllers
         [HttpPost("{slug}/comments")]
         [Authorize]
         [ValidateModel]
-        public async Task<IActionResult> AddCommentToArticle(string slug, [FromBody] SaveCommentResource saveCommentResource)
+        public async Task<IActionResult> CreateComment(string slug, [FromBody] SaveCommentResource saveCommentResource)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
 
@@ -192,7 +192,7 @@ namespace Blogger.WebApi.Controllers
 
         [HttpPost("{slug}/favorite")]
         [Authorize]
-        public async Task<IActionResult> Favorite(string slug)
+        public async Task<IActionResult> CreateFavorite(string slug)
         {
             var article = await _articleRepository.GetBySlugAsync(slug);
 

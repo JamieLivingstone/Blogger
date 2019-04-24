@@ -65,7 +65,7 @@ namespace Blogger.WebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetSignedInUser()
+        public async Task<IActionResult> GetUser()
         {
             var user = await _userResolverService.GetUserAsync();
 

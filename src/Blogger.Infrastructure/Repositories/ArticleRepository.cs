@@ -61,7 +61,7 @@ namespace Blogger.Infrastructure.Repositories
                 queryable = queryable.Where(a => a.Favorites.Select(f => f.ObserverId).Contains(favorited));
             }
 
-            var signedInUserId = _userResolverService.GetUserId();
+            var userId = _userResolverService.GetUserId();
 
             return queryable
                 .OrderByDescending(a => a.CreatedAt)
@@ -69,14 +69,14 @@ namespace Blogger.Infrastructure.Repositories
                 .Take(limit ?? 20)
                 .AsNoTracking()
                 .ToList()
-                .Select(article => PopulateProperties(article, signedInUserId));
+                .Select(article => PopulateProperties(article, userId));
         }
 
-        private Article PopulateProperties(Article article, string signedInUserId)
+        private Article PopulateProperties(Article article, string userId)
         {
-            if (signedInUserId != null)
+            if (userId != null)
             {
-                var favorited = _dbContext.Favorites.FirstOrDefault(f => f.ArticleId == article.Id && f.ObserverId == signedInUserId);
+                var favorited = _dbContext.Favorites.FirstOrDefault(f => f.ArticleId == article.Id && f.ObserverId == userId);
 
                 if (favorited != null)
                 {

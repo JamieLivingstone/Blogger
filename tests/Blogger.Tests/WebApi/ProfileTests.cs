@@ -25,7 +25,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task GetProfileByUsername_UserDoesNotExist_ReturnsNotFound()
+        public async Task GetProfileByUsername_DoesNotExist_ReturnsNotFound()
         {
             // Arrange
             const string userName = "foo";
@@ -38,7 +38,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task GetProfileByUsername_UserExists_ReturnsProfileResource()
+        public async Task GetProfileByUsername_Exists_ReturnsProfileResource()
         {
             // Arrange
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 10);
@@ -56,10 +56,10 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task FollowUser_UserDoesNotExist_ReturnsNotFound()
+        public async Task FollowUser_DoesNotExist_ReturnsNotFound()
         {
             // Arrange
-            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            await SeedData.SignInAndSetAuthorizationHeader(_webApplicationFactory, _client);
             const string userName = "foo";
 
             // Act
@@ -70,10 +70,10 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task FollowUser_UserExists_FollowsUserAndReturnsProfile()
+        public async Task FollowUser_Exists_FollowsUser()
         {
             // Arrange
-            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var user = await SeedData.SignInAndSetAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             var userToFollow = seed[0];
 
@@ -93,15 +93,15 @@ namespace Blogger.Tests.WebApi
                 Assert.That(responseObject.Following, Is.EqualTo(true));
                 Assert.That(dbContext.Followers.Count(), Is.EqualTo(1));
                 Assert.That(followerEntity.TargetId, Is.EqualTo(userToFollow.Id));
-                Assert.That(followerEntity.ObserverId, Is.EqualTo(signedInUser.Id));
+                Assert.That(followerEntity.ObserverId, Is.EqualTo(user.Id));
             }
         }
 
         [TestCase]
-        public async Task UnfollowUser_IsAlreadyFollowing_RemovesFollowerAndReturnsProfileResource()
+        public async Task UnfollowUser_ValidRequest_RemovesFollower()
         {
             // Arrange
-            await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            await SeedData.SignInAndSetAuthorizationHeader(_webApplicationFactory, _client);
             var seed = await SeedData.SeedUsersAsync(_webApplicationFactory, 1);
             var target = seed[0];
 

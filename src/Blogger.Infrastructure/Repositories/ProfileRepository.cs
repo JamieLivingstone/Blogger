@@ -25,11 +25,11 @@ namespace Blogger.Infrastructure.Repositories
                 return null;
             }
 
-            var signedInUserId = _userResolverService.GetUserId();
+            var userId = _userResolverService.GetUserId();
 
-            if (signedInUserId != null && signedInUserId != user.Id)
+            if (userId != null && userId != user.Id)
             {
-                var isFollowing = await _dbContext.Followers.FirstOrDefaultAsync(follower => follower.TargetId == user.Id && follower.ObserverId == signedInUserId);
+                var isFollowing = await _dbContext.Followers.FirstOrDefaultAsync(follower => follower.TargetId == user.Id && follower.ObserverId == userId);
 
                 if (isFollowing != null)
                 {

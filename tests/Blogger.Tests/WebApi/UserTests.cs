@@ -28,7 +28,7 @@ namespace Blogger.Tests.WebApi
         private HttpClient _client;
 
         [TestCase]
-        public async Task Register_GivenAnInvalidModel_ReturnsBadRequest()
+        public async Task Register_InvalidResource_ReturnsBadRequest()
         {
             // Arrange
             var user = new SaveUserResource();
@@ -41,7 +41,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task Register_GivenAValidModel_CreatesUser()
+        public async Task Register_ValidRequest_CreatesUser()
         {
             // Arrange
             var faker = new Faker();
@@ -67,7 +67,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task Login_GivenAnInvalidModel_ReturnsBadRequest()
+        public async Task Login_InvalidResource_ReturnsBadRequest()
         {
             // Arrange
             var login = new LoginUserResource();
@@ -80,7 +80,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task Login_GivenInvalidCredentials_ReturnsUnauthorised()
+        public async Task Login_BadCredentials_ReturnsUnauthorised()
         {
             // Arrange
             var login = new LoginUserResource
@@ -97,7 +97,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task Login_GivenValidCredentials_ReturnsUserResource()
+        public async Task Login_ValidCredentials_SignsIn()
         {
             // Arrange
             var login = new LoginUserResource
@@ -124,7 +124,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task GetCurrentUser_InvalidJWT_ReturnsUnauthorised()
+        public async Task GetCurrentUser_InvalidAuthenticationHeader_ReturnsUnauthorised()
         {
             // Arrange
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid_jwt");
@@ -137,10 +137,10 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task GetCurrentUser_ValidJwt_ReturnsUser()
+        public async Task GetUser_ValidAuthenticationHeader_ReturnsUser()
         {
             // Arrange
-            var signedInUser = await SeedData.SeedUserAndMutateAuthorizationHeader(_webApplicationFactory, _client);
+            var user = await SeedData.SignInAndSetAuthorizationHeader(_webApplicationFactory, _client);
 
             // Act
             var response = await _client.GetAsync("/api/users");
@@ -149,7 +149,7 @@ namespace Blogger.Tests.WebApi
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(responseObject.UserName, Is.EqualTo(signedInUser.UserName));
+            Assert.That(responseObject.UserName, Is.EqualTo(user.UserName));
             Assert.That(responseObject.Token.Length, Is.GreaterThan(100));
         }
     }

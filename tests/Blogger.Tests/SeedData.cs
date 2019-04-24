@@ -44,7 +44,7 @@ namespace Blogger.Tests
             return users.ToList();
         }
 
-        public static async Task<ApplicationUser> SeedUserAndMutateAuthorizationHeader(CustomWebApplicationFactory factory, HttpClient httpClient)
+        public static async Task<ApplicationUser> SignInAndSetAuthorizationHeader(CustomWebApplicationFactory factory, HttpClient httpClient)
         {
             var user = new ApplicationUser
             {

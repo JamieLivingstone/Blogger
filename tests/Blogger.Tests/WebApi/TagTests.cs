@@ -34,7 +34,7 @@ namespace Blogger.Tests.WebApi
         }
 
         [TestCase]
-        public async Task GetTags_TagsInDatabase_ReturnsTags()
+        public async Task GetTags_Exists_ReturnsTags()
         {
             // Arrange
             var seededTags = await SeedData.SeedTagsAsync(_webApplicationFactory);
