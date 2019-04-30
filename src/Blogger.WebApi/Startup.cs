@@ -23,15 +23,12 @@ namespace Blogger.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("Database"));
             });
 
-            services.AddJwt(Configuration);
-
+            services.AddMvc();
             services.AddAutoMapper();
             services.AddTransient<IUserResolverService, UserResolverService>();
             services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -42,6 +39,8 @@ namespace Blogger.WebApi
             services.AddTransient<IArticleRepository, ArticleRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
             services.AddTransient<ITagRepository, TagRepository>();
+            services.AddJwt(Configuration);
+            services.AddCors();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -51,6 +50,7 @@ namespace Blogger.WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseMvc();
