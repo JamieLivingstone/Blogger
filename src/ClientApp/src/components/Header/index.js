@@ -1,40 +1,65 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Container from '../Layout/Container';
+import Logo from '../Logo';
+import { Header, Nav } from './styles';
 
 const loggedOutNavigation = () => (
-  <nav>
-    <Link to="/">Home</Link>
-    <Link to="/login">Sign In</Link>
-    <Link to="/register">Sign up</Link>
-  </nav>
+  <Nav>
+    <NavLink to="/" exact>
+      Home
+    </NavLink>
+
+    <NavLink to="/login" exact>
+      Sign In
+    </NavLink>
+
+    <NavLink to="/register" exact>
+      Sign up
+    </NavLink>
+  </Nav>
 );
 
-export const loggedInNavigation = props => {
+const loggedInNavigation = props => {
   const username = props.currentUser.username;
 
   return (
-    <nav>
-      <Link to="/">Home</Link>
-      <Link to="/">New Article</Link>
-      <Link to="/">Settings</Link>
-      <Link to={`/@${username}`}>{username}</Link>
-    </nav>
+    <Nav>
+      <NavLink to="/" exact>
+        Home
+      </NavLink>
+
+      <NavLink to="/" exact>
+        New Article
+      </NavLink>
+
+      <NavLink to="/" exact>
+        Settings
+      </NavLink>
+
+      <NavLink to={`/@${username}`} exact>
+        {username}
+      </NavLink>
+    </Nav>
   );
 };
 
-function Header(props) {
+function HeaderComponent(props) {
   const Navigation = props.currentUser ? loggedInNavigation : loggedOutNavigation;
 
   return (
-    <header>
-      <Navigation {...props} />
-    </header>
+    <Container>
+      <Header>
+        <Logo />
+        <Navigation {...props} />
+      </Header>
+    </Container>
   );
 }
 
-Header.propTypes = {
+HeaderComponent.propTypes = {
   currentUser: PropTypes.object
 };
 
-export default Header;
+export default HeaderComponent;

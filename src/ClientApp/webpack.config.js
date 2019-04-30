@@ -6,7 +6,7 @@ module.exports = (env, argv) => {
 
   return {
     mode: argv.mode,
-    entry: path.join(__dirname, '/src/app.js'),
+    entry: path.join(__dirname, '/src/index.js'),
     output: {
       filename: '[name].js',
       path: path.join(__dirname, '/dist')
@@ -17,6 +17,10 @@ module.exports = (env, argv) => {
           test: /\.js$/,
           loader: 'babel-loader',
           query: { compact: isProduction }
+        },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader']
         }
       ]
     },
@@ -31,9 +35,12 @@ module.exports = (env, argv) => {
       contentBase: path.join(__dirname, 'dist'),
       compress: true,
       port: 3000,
-      open: true,
+      open: false,
       publicPath: '/',
       historyApiFallback: true
+    },
+    resolve: {
+      extensions: ['.js', '.jsx', '.css']
     }
   };
 };
