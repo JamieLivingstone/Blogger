@@ -1,0 +1,49 @@
+form {
+  max-width: 570px;
+  margin: 1rem auto;
+
+  input,
+  textarea {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.25rem;
+    border-radius: 0.3rem;
+    line-height: 1.25;
+    background-color: $white;
+    background-clip: padding-box;
+    margin-bottom: 1rem;
+    outline: 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+    &:focus {
+      border-color: $grey;
+    }
+  }
+
+  button[type='submit'] {
+    float: right;
+  }
+
+  textarea {
+    min-height: 150px;
+  }
+
+  a {
+    margin-bottom: 1rem;
+  }
+
+  &.submitting {
+    cursor: not-allowed;
+
+    input {
+      cursor: not-allowed;
+      background: $lightGrey;
+    }
+
+    button {
+      background: lighten($green, 15%);
+      pointer-events: none;
+    }
+  }
+}

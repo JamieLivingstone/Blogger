@@ -1,0 +1,46 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+
+  @include sm {
+    max-width: 720px;
+  }
+
+  @include md {
+    max-width: 940px;
+  }
+
+  @include lg {
+    max-width: 1140px;
+  }
+}
+
+.page {
+  margin-top: 1.5rem;
+  min-height: 75vh;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+form {
+  margin-top: 1rem;
+}
+
+hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}

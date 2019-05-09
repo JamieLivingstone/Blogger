@@ -1,0 +1,10 @@
+.validation-errors {
+  color: $red;
+  font-weight: 700;
+  text-align: left;
+  margin-bottom: 1rem;
+
+  li {
+    margin-bottom: 5px;
+  }
+}

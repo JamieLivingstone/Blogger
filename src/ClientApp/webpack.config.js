@@ -1,12 +1,14 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
 
   return {
     mode: argv.mode,
-    entry: path.join(__dirname, '/src/index.js'),
+    entry: ['./src/index.js', './src/styles/main.scss'],
     output: {
       filename: '[name].js',
       path: path.join(__dirname, '/dist')
@@ -19,8 +21,18 @@ module.exports = (env, argv) => {
           query: { compact: isProduction }
         },
         {
-          test: /\.css$/,
-          use: ['style-loader', 'css-loader']
+          test: /\.scss$/,
+          use: [
+            {
+              loader: isProduction ? MiniCssExtractPlugin.loader : 'style-loader'
+            },
+            {
+              loader: 'css-loader'
+            },
+            {
+              loader: 'sass-loader'
+            }
+          ]
         }
       ]
     },
@@ -29,7 +41,8 @@ module.exports = (env, argv) => {
         cache: true,
         template: './src/index.html',
         minify: isProduction
-      })
+      }),
+      new Dotenv()
     ],
     devServer: {
       contentBase: path.join(__dirname, 'dist'),

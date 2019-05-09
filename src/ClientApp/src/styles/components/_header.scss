@@ -1,0 +1,52 @@
+header {
+  display: grid;
+  grid-gap: 30px;
+  grid-template-columns: auto 1fr;
+  padding: 15px 0;
+
+  .logo {
+    font-family: titillium web, sans-serif;
+    font-size: 1.2rem;
+    color: $green;
+
+    @include xs {
+      font-size: 1.5rem;
+    }
+
+    &:hover {
+      color: $green;
+      text-decoration: none;
+    }
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+
+    a {
+      font-size: 15px;
+      text-decoration: none;
+      margin-right: 1rem;
+      color: rgba(0, 0, 0, 0.3);
+
+      @include xs {
+        font-size: 16px;
+      }
+
+      &:last-of-type {
+        margin-right: 0;
+      }
+
+      &:hover {
+        text-decoration: none;
+        transition: 0.3s ease;
+        color: $grey;
+      }
+
+      &.active {
+        color: #000000;
+      }
+    }
+  }
+}

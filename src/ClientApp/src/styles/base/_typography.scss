@@ -1,0 +1,24 @@
+body {
+  font-family: source sans pro, sans-serif;
+  font-size: 1rem;
+  color: #373a3c;
+  background-color: #fff;
+  line-height: 1;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+a {
+  color: $green;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($green, 10%);
+  }
+}

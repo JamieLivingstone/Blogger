@@ -1,0 +1,27 @@
+button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  border-radius: 0.3rem;
+  background: $green;
+  color: $white;
+  cursor: pointer;
+  outline: 0;
+
+  &:hover {
+    background-color: darken($green, 10%);
+    transition: 0.3s ease;
+  }
+
+  &.danger {
+    font-size: 1rem;
+    color: $red;
+    background-image: none;
+    background-color: transparent;
+    border-color: $red;
+
+    &:hover {
+      background: $red;
+      color: #ffffff;
+    }
+  }
+}
