@@ -29,9 +29,7 @@ function userStore() {
           handleSuccessfulAuthentication(response);
           resolve();
         })
-        .catch(() => {
-          reject(['Login failed.']);
-        });
+        .catch(reject);
     });
   }
 
@@ -44,8 +42,11 @@ function userStore() {
           resolve();
         })
         .catch(({ response }) => {
-          const errors = response.data.map(error => error.description);
-          reject(errors);
+          if (response) {
+            reject(response.data);
+          }
+
+          reject(['Something went wrong, please try again.']);
         });
     });
   }

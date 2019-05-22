@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Blogger.Core.Entities;
@@ -44,7 +45,7 @@ namespace Blogger.WebApi.Controllers
                 return Created($"/api/users/{user.Id}", FormatUser(user));
             }
 
-            return BadRequest(result.Errors);
+            return BadRequest(result.Errors.Select(error => error.Description));
         }
 
         [HttpPost("login")]

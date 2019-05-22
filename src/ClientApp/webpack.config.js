@@ -11,7 +11,8 @@ module.exports = (env, argv) => {
     entry: ['./src/index.js', './src/styles/main.scss'],
     output: {
       filename: '[name].js',
-      path: path.join(__dirname, '/dist')
+      path: path.join(__dirname, '/dist'),
+      publicPath: '/'
     },
     module: {
       rules: [

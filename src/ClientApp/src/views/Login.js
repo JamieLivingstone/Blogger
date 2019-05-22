@@ -10,11 +10,13 @@ function Login() {
   const [errors, setErrors] = useState([]);
 
   async function submit(values, { setSubmitting }) {
-    await store.login(values.username, values.password).catch(setErrors);
+    await store.login(values.username, values.password).catch(() => {
+      setErrors(['Login failed.']);
+    });
+
     setSubmitting(false);
   }
 
-  // Redirect to home page on successful login or if user is already signed in
   if (store.user) {
     return <Redirect to="/" />;
   }
@@ -31,8 +33,22 @@ function Login() {
           <form onSubmit={handleSubmit} className={isSubmitting ? 'submitting' : null}>
             <ErrorList errors={errors} />
 
-            <input type="text" name="username" placeholder="Username" onChange={handleChange} />
-            <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+            <input
+              type="text"
+              required
+              name="username"
+              placeholder="Username"
+              onChange={handleChange}
+            />
+
+            <input
+              type="password"
+              required
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+            />
+
             <button type="submit">Sign in</button>
           </form>
         )}

@@ -14,7 +14,6 @@ function Register() {
     setSubmitting(false);
   }
 
-  // Redirect to home page on successful login or if user is already signed in
   if (store.user) {
     return <Redirect to="/" />;
   }
@@ -31,9 +30,24 @@ function Register() {
           <form onSubmit={handleSubmit} className={isSubmitting ? 'submitting' : null}>
             <ErrorList errors={errors} />
 
-            <input type="text" name="username" placeholder="Username" onChange={handleChange} />
-            <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-            <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+            <input
+              type="text"
+              required
+              name="username"
+              placeholder="Username"
+              onChange={handleChange}
+            />
+
+            <input type="email" required name="email" placeholder="Email" onChange={handleChange} />
+
+            <input
+              type="password"
+              required
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+            />
+
             <button type="submit">Sign up</button>
           </form>
         )}

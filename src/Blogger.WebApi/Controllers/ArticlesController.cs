@@ -52,19 +52,22 @@ namespace Blogger.WebApi.Controllers
             await _repository.AddAsync(article);
 
             // Add tags to article
-            var tags = saveArticleResource.TagList.Select(t => t.ToLower()).Distinct();
+            var tags = saveArticleResource.TagList?.Select(t => t.ToLower().Trim()).Distinct();
 
-            foreach (var name in tags)
+            if (tags != null)
             {
-                var tag = await _tagRepository.GetOrCreateAsync(name);
-
-                var articleTag = new ArticleTag
+                foreach (var name in tags)
                 {
-                    ArticleId = article.Id,
-                    TagId = tag.Id
-                };
+                    var tag = await _tagRepository.GetOrCreateAsync(name);
 
-                await _repository.AddAsync(articleTag);
+                    var articleTag = new ArticleTag
+                    {
+                        ArticleId = article.Id,
+                        TagId = tag.Id
+                    };
+
+                    await _repository.AddAsync(articleTag);
+                }
             }
 
             // Retrieve newly created article

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Blogger.WebApi.Resources.Article
 {
@@ -17,6 +19,7 @@ namespace Blogger.WebApi.Resources.Article
         [MinLength(10)]
         public string Body { get; set; }
 
+        [JsonProperty("tags")]
         public List<string> TagList { get; set; }
     }
 }
